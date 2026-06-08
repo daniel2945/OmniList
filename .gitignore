@@ -1,0 +1,13 @@
+# Node
+node_modules/
+
+# Environment Variables
+.env
+.env.local
+
+# Vite / React build
+dist/
+build/
+
+# Misc
+.DS_Store
