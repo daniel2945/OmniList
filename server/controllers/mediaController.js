@@ -1,43 +1,66 @@
 const axios = require('axios');
 
-// חיפוש פריט מדיה (סרט, סדרה או משחק) מול ה-APIs החיצוניים
+// מנגנון זיכרון מטמון פשוט בזיכרון השרת למניעת קריאות כפולות ואיטיות
+const searchCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 דקות שמיקה
+
+const getFromCache = (key) => {
+  const cached = searchCache.get(key);
+  if (!cached) return null;
+  if (Date.now() > cached.expiry) {
+    searchCache.delete(key);
+    return null;
+  }
+  return cached.data;
+};
+
+const setToCache = (key, data) => {
+  searchCache.set(key, {
+    data,
+    expiry: Date.now() + CACHE_DURATION
+  });
+};
+
 const searchMedia = async (req, res) => {
   try {
-    const { query, type } = req.query; // נקבל את מילת החיפוש ואת הסוג מה-URL
+    const { query, type, page = 1 } = req.query; 
 
     if (!query || !type) {
       return res.status(400).json({ message: 'Please provide both query and type' });
     }
 
+    const cacheKey = `search-${type}-${query}-${page}`;
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+
     let results = [];
 
-    // --- חיפוש משחקים ב-RAWG ---
     if (type === 'game') {
       const response = await axios.get(`https://api.rawg.io/api/games`, {
         params: {
           key: process.env.RAWG_API_KEY,
           search: query,
-          page_size: 10 // נגביל ל-10 תוצאות כדי לא להעמיס
+          page: page,
+          page_size: 20
         }
       });
       
-      // נסדר את התשובה כדי שיהיה לממשק שלנו קל לקרוא אותה
       results = response.data.results.map(game => ({
         externalId: game.id.toString(),
         title: game.name,
         type: 'game',
         posterPath: game.background_image,
-        releaseDate: game.released
+        backdropPath: game.background_image,
+        releaseDate: game.released,
+        voteAverage: game.rating
       }));
     } 
     
-    // --- חיפוש סרטים ב-TMDB ---
     else if (type === 'movie') {
       const response = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
-        params: {
-          api_key: process.env.TMDB_API_KEY,
-          query: query
-        }
+        params: { api_key: process.env.TMDB_API_KEY, query: query, page: page }
       });
 
       results = response.data.results.map(movie => ({
@@ -45,30 +68,33 @@ const searchMedia = async (req, res) => {
         title: movie.title,
         type: 'movie',
         posterPath: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-        releaseDate: movie.release_date
+        backdropPath: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
+        releaseDate: movie.release_date,
+        voteAverage: movie.vote_average,
+        overview: movie.overview
       }));
     }
 
-    // --- חיפוש סדרות ב-TMDB ---
     else if (type === 'tv') {
       const response = await axios.get(`https://api.themoviedb.org/3/search/tv`, {
-        params: {
-          api_key: process.env.TMDB_API_KEY,
-          query: query
-        }
+        params: { api_key: process.env.TMDB_API_KEY, query: query, page: page }
       });
 
       results = response.data.results.map(show => ({
         externalId: show.id.toString(),
-        title: show.name, // בסדרות TMDB קוראים לזה name ולא title
+        title: show.name,
         type: 'tv',
         posterPath: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
-        releaseDate: show.first_air_date
+        backdropPath: show.backdrop_path ? `https://image.tmdb.org/t/p/w1280${show.backdrop_path}` : null,
+        releaseDate: show.first_air_date,
+        voteAverage: show.vote_average,
+        overview: show.overview
       }));
     } else {
       return res.status(400).json({ message: 'Invalid media type' });
     }
 
+    setToCache(cacheKey, results);
     res.json(results);
 
   } catch (error) {
@@ -77,26 +103,29 @@ const searchMedia = async (req, res) => {
   }
 };
 
-// משיכת פריטים פופולריים (מחולק לעמודים)
 const getPopularMedia = async (req, res) => {
   try {
-    // נוציא את סוג המדיה ואת מספר העמוד (אם לא נשלח עמוד, נגדיר כברירת מחדל 1)
     const { type, page = 1 } = req.query;
 
     if (!type) {
       return res.status(400).json({ message: 'Please provide media type' });
     }
 
+    const cacheKey = `popular-${type}-${page}`;
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+
     let results = [];
 
-    // --- פופולריים במשחקים (RAWG) ---
     if (type === 'game') {
       const response = await axios.get(`https://api.rawg.io/api/games`, {
         params: {
           key: process.env.RAWG_API_KEY,
-          ordering: '-added', // מיון לפי המשחקים שהכי הרבה אנשים הוסיפו לספרייה שלהם לאחרונה
+          ordering: '-added',
           page: page,
-          page_size: 20 // 20 תוצאות לעמוד
+          page_size: 20
         }
       });
       
@@ -105,18 +134,15 @@ const getPopularMedia = async (req, res) => {
         title: game.name,
         type: 'game',
         posterPath: game.background_image,
-        releaseDate: game.released
+        backdropPath: game.background_image,
+        releaseDate: game.released,
+        voteAverage: game.rating
       }));
     } 
     
-    // --- פופולריים בסרטים (TMDB) ---
     else if (type === 'movie') {
-      // ל-TMDB יש נקודת קצה מיוחדת לפופולריים
       const response = await axios.get(`https://api.themoviedb.org/3/movie/popular`, {
-        params: {
-          api_key: process.env.TMDB_API_KEY,
-          page: page
-        }
+        params: { api_key: process.env.TMDB_API_KEY, page: page }
       });
 
       results = response.data.results.map(movie => ({
@@ -124,17 +150,16 @@ const getPopularMedia = async (req, res) => {
         title: movie.title,
         type: 'movie',
         posterPath: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-        releaseDate: movie.release_date
+        backdropPath: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
+        releaseDate: movie.release_date,
+        voteAverage: movie.vote_average,
+        overview: movie.overview
       }));
     }
 
-    // --- פופולריים בסדרות (TMDB) ---
     else if (type === 'tv') {
       const response = await axios.get(`https://api.themoviedb.org/3/tv/popular`, {
-        params: {
-          api_key: process.env.TMDB_API_KEY,
-          page: page
-        }
+        params: { api_key: process.env.TMDB_API_KEY, page: page }
       });
 
       results = response.data.results.map(show => ({
@@ -142,14 +167,17 @@ const getPopularMedia = async (req, res) => {
         title: show.name,
         type: 'tv',
         posterPath: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
-        releaseDate: show.first_air_date
+        backdropPath: show.backdrop_path ? `https://image.tmdb.org/t/p/w1280${show.backdrop_path}` : null,
+        releaseDate: show.first_air_date,
+        voteAverage: show.vote_average,
+        overview: show.overview
       }));
     } else {
       return res.status(400).json({ message: 'Invalid media type' });
     }
 
-    // נחזיר גם את התוצאות וגם את העמוד הנוכחי כדי שיהיה נוח בפרונטאנד
-    res.json({ page: Number(page), results });
+    setToCache(cacheKey, results);
+    res.json(results);
 
   } catch (error) {
     console.error('Error fetching popular media:', error);
@@ -157,11 +185,10 @@ const getPopularMedia = async (req, res) => {
   }
 };
 
-// קבלת פרטים מלאים על פריט ספציפי (כולל אורך/פרקים)
 const getMediaDetails = async (req, res) => {
   try {
-    const { id } = req.params; // ה-ID החיצוני (של TMDB או RAWG)
-    const { type } = req.query; // game, movie או tv
+    const { id } = req.params;
+    const { type } = req.query; 
 
     if (!type) {
       return res.status(400).json({ message: 'Please provide media type' });
@@ -169,7 +196,6 @@ const getMediaDetails = async (req, res) => {
 
     let details = {};
 
-    // --- פרטי משחק (RAWG) ---
     if (type === 'game') {
       const response = await axios.get(`https://api.rawg.io/api/games/${id}`, {
         params: { key: process.env.RAWG_API_KEY }
@@ -180,12 +206,14 @@ const getMediaDetails = async (req, res) => {
         title: response.data.name,
         type: 'game',
         posterPath: response.data.background_image,
+        backdropPath: response.data.background_image_additional || response.data.background_image,
         releaseDate: response.data.released,
-        duration: response.data.playtime // ממוצע שעות משחק (Playtime)
+        duration: response.data.playtime,
+        voteAverage: response.data.rating,
+        description_raw: response.data.description_raw || response.data.description
       };
     } 
     
-    // --- פרטי סרט (TMDB) ---
     else if (type === 'movie') {
       const response = await axios.get(`https://api.themoviedb.org/3/movie/${id}`, {
         params: { api_key: process.env.TMDB_API_KEY }
@@ -196,27 +224,41 @@ const getMediaDetails = async (req, res) => {
         title: response.data.title,
         type: 'movie',
         posterPath: response.data.poster_path ? `https://image.tmdb.org/t/p/w500${response.data.poster_path}` : null,
+        backdropPath: response.data.backdrop_path ? `https://image.tmdb.org/t/p/w1280${response.data.backdrop_path}` : null,
         releaseDate: response.data.release_date,
-        duration: response.data.runtime // אורך הסרט בדקות
+        duration: response.data.runtime,
+        voteAverage: response.data.vote_average,
+        overview: response.data.overview
       };
     }
 
-    // --- פרטי סדרה (TMDB) ---
     else if (type === 'tv') {
       const response = await axios.get(`https://api.themoviedb.org/3/tv/${id}`, {
         params: { api_key: process.env.TMDB_API_KEY }
       });
 
+      const showData = response.data;
+      
+      // שליפת אורך פרק מדויק - בודק גם בנתוני בקסטרוקטור וגם בפרק האחרון ששודר
+      let epRuntime = null;
+      if (showData.episode_run_time && showData.episode_run_time.length > 0) {
+        epRuntime = showData.episode_run_time[0];
+      } else if (showData.last_episode_to_air && showData.last_episode_to_air.runtime) {
+        epRuntime = showData.last_episode_to_air.runtime;
+      }
+
       details = {
-        externalId: response.data.id.toString(),
-        title: response.data.name,
+        externalId: showData.id.toString(),
+        title: showData.name,
         type: 'tv',
-        posterPath: response.data.poster_path ? `https://image.tmdb.org/t/p/w500${response.data.poster_path}` : null,
-        releaseDate: response.data.first_air_date,
-        totalSeasons: response.data.number_of_seasons, // סך הכל עונות
-        totalEpisodes: response.data.number_of_episodes, // סך הכל פרקים
-        // לפעמים אורך פרק מגיע כמערך, ניקח את הערך הראשון אם קיים
-        episodeRuntime: response.data.episode_run_time?.length > 0 ? response.data.episode_run_time[0] : null 
+        posterPath: showData.poster_path ? `https://image.tmdb.org/t/p/w500${showData.poster_path}` : null,
+        backdropPath: showData.backdrop_path ? `https://image.tmdb.org/t/p/w1280${showData.backdrop_path}` : null,
+        releaseDate: showData.first_air_date,
+        totalSeasons: showData.number_of_seasons,
+        totalEpisodes: showData.number_of_episodes,
+        episodeRuntime: epRuntime, 
+        voteAverage: showData.vote_average,
+        overview: showData.overview
       };
     } else {
       return res.status(400).json({ message: 'Invalid media type' });
@@ -230,5 +272,4 @@ const getMediaDetails = async (req, res) => {
   }
 };
 
-// אל תשכח לעדכן את הייצוא בסוף הקובץ!
 module.exports = { searchMedia, getPopularMedia, getMediaDetails };

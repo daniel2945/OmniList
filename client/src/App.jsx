@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Home from './pages/Home';
-import MyList from './pages/MyList'; // ייבוא הספרייה
-import ItemDetails from './pages/ItemDetails'; // ייבוא עמוד הפרטים
+import Search from './pages/Search';
+import MyList from './pages/MyList';
+import ItemDetails from './pages/ItemDetails';
 
 function App() {
   return (
@@ -11,9 +13,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="search" element={<Search />} />
           <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
           <Route path="my-list" element={<MyList />} />
-          <Route path="item/:id" element={<ItemDetails />} />
+          <Route path="item/:type/:id" element={<ItemDetails />} />
         </Route>
       </Routes>
     </BrowserRouter>

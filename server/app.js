@@ -6,6 +6,8 @@ const authRouter = require('./routes/authRouter');
 const mediaRouter = require('./routes/mediaRouter');
 const listRouter = require('./routes/listRouter');
 const aiRouter = require('./routes/aiRouter');
+const collectionRouter = require('./routes/collectionRoutes');
+
 
 // טעינת משתני סביבה מקובץ .env
 dotenv.config();
@@ -27,6 +29,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/media', mediaRouter);
 app.use('/api/list', listRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/collections', collectionRouter);
 
 // ראוט בסיסי לבדיקה
 app.get('/', (req, res) => {

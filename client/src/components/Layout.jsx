@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { Search, Film, Tv, Gamepad2, Library, LogOut, User } from 'lucide-react';
+import { Search as SearchIcon, Library, LogOut, User } from 'lucide-react';
 import useAuthStore from "../store/useAuthStore";
 
 const Layout = () => {
@@ -19,7 +19,8 @@ const Layout = () => {
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
       <Toaster position="top-center" />
 
-      <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
+      {/* תוקן ה-z-index ל-50 בצורה מוחלטת כדי למנוע מעבר של אלמנטים בזמן גלילה */}
+      <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             
@@ -29,23 +30,10 @@ const Layout = () => {
                 OmniList
               </Link>
 
-              {/* ניווט קטגוריות עם אייקונים */}
               <div className="hidden md:flex items-center gap-2 mt-1">
-                <Link to="/" className={getLinkClass("/")}>
-                  <Search className="w-4 h-4" />
-                  חיפוש
-                </Link>
-                <Link to="/movies" className={getLinkClass("/movies")}>
-                  <Film className="w-4 h-4" />
-                  סרטים
-                </Link>
-                <Link to="/tv" className={getLinkClass("/tv")}>
-                  <Tv className="w-4 h-4" />
-                  סדרות
-                </Link>
-                <Link to="/games" className={getLinkClass("/games")}>
-                  <Gamepad2 className="w-4 h-4" />
-                  משחקים
+                <Link to="/search" className={getLinkClass("/search")}>
+                  <SearchIcon className="w-4 h-4" />
+                  חיפוש תוכן
                 </Link>
                 
                 {user && (
@@ -55,7 +43,7 @@ const Layout = () => {
                       <Library className="w-4 h-4" />
                       הספרייה שלי
                     </Link>
-                  </  >
+                  </>
                 )}
               </div>
             </div>
@@ -76,13 +64,14 @@ const Layout = () => {
                   </button>
                 </div>
               ) : (
-                <Link
-                  to="/login"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-5 rounded-lg transition-colors shadow-sm flex items-center gap-2"
-                >
-                  <User className="w-4 h-4" />
-                  התחברות
-                </Link>
+                <div className="flex gap-2">
+                  <Link to="/login" className="text-slate-600 hover:bg-slate-100 py-2 px-4 rounded-lg transition-colors font-medium text-sm">
+                    התחברות
+                  </Link>
+                  <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-5 rounded-lg transition-colors shadow-sm">
+                    הרשמה
+                  </Link>
+                </div>
               )}
             </div>
             
