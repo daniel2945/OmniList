@@ -1,5 +1,5 @@
 const mongoose = require("mongoose"); // <- התיקון הקריטי: ייבוא הספרייה ששכחת!
-const MediaItem = require("../models/MediaItem");
+const MediaItem = require("../models/Item");
 const UserList = require("../models/UserList");
 
 // הוספה או עדכון של פריט ברשימת המשתמש
@@ -18,6 +18,7 @@ const addOrUpdateListItem = async (req, res) => {
       status,
       rating,
       review,
+      address,
     } = req.body;
 
     // הגנה מפני חוסר עקביות במזהה המשתמש
@@ -36,6 +37,7 @@ const addOrUpdateListItem = async (req, res) => {
         totalSeasons,
         totalEpisodes,
         episodeRuntime,
+        address,
       });
     }
 
@@ -83,12 +85,10 @@ const removeListItem = async (req, res) => {
       return res.status(404).json({ message: "Item not found in your list" });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Item successfully removed from your list",
-        id: listId,
-      });
+    res.status(200).json({
+      message: "Item successfully removed from your list",
+      id: listId,
+    });
   } catch (error) {
     console.error("Error removing item:", error);
     res.status(500).json({ message: "Server error while removing item" });
@@ -138,12 +138,10 @@ const updateUserListOrder = async (req, res) => {
     res.json({ message: "List order updated successfully" });
   } catch (error) {
     console.error("Error updating list order in backend:", error.message);
-    res
-      .status(500)
-      .json({
-        message: "Server error while updating list order",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error while updating list order",
+      error: error.message,
+    });
   }
 };
 

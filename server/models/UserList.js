@@ -1,28 +1,43 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const userListSchema = new mongoose.Schema({
-  user: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+const userListSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    mediaItem: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Item",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: [
+        // Game statuses
+        "plan_to_play",
+        "playing",
+        // Movie/TV statuses
+        "plan_to_watch",
+        "watching",
+        // Destination statuses
+        "plan_to_visit",
+        "visited",
+        // Common statuses
+        "completed",
+        "dropped",
+      ],
+      required: true,
+    },
+    rating: { type: Number, min: 1, max: 10 },
+    review: { type: String },
+    orderIndex: { type: Number, default: 0 },
   },
-  mediaItem: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'MediaItem', 
-    required: true 
-  },
-  status: { 
-    type: String, 
-    enum: ['wishlist', 'in-progress', 'completed', 'dropped'], 
-    default: 'wishlist' 
-  },
-  rating: { type: Number, min: 1, max: 10 },
-  review: { type: String },
-  // -- השדה החדש לסדר וארגון (Drag & Drop) --
-  orderIndex: { type: Number, default: 0 }
-}, { timestamps: true });
+  { timestamps: true },
+);
 
-// אינדקס שמונע מהמשתמש להוסיף את אותו פריט פעמיים לרשימה שלו
+// מניעת מצב שמשתמש מוסיף את אותו פריט פעמיים לרשימה שלו
 userListSchema.index({ user: 1, mediaItem: 1 }, { unique: true });
 
-module.exports = mongoose.model('UserList', userListSchema);
+module.exports = mongoose.model("UserList", userListSchema);

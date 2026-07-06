@@ -7,6 +7,7 @@ const mediaRouter = require('./routes/mediaRouter');
 const listRouter = require('./routes/listRouter');
 const aiRouter = require('./routes/aiRouter');
 const collectionRouter = require('./routes/collectionRouter');
+const destinationRouter = require('./routes/destinationRouter');
 
 
 // טעינת משתני סביבה מקובץ .env
@@ -30,6 +31,7 @@ app.use('/api/media', mediaRouter);
 app.use('/api/list', listRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/collections', collectionRouter);
+app.use('/api/destinations', destinationRouter);
 
 // ראוט בסיסי לבדיקה
 app.get('/', (req, res) => {

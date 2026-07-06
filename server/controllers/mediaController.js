@@ -48,6 +48,7 @@ const searchMedia = async (req, res) => {
       });
       
       results = response.data.results.map(game => ({
+        id: game.id.toString(),
         externalId: game.id.toString(),
         title: game.name,
         type: 'game',
@@ -64,6 +65,7 @@ const searchMedia = async (req, res) => {
       });
 
       results = response.data.results.map(movie => ({
+        id: movie.id.toString(),
         externalId: movie.id.toString(),
         title: movie.title,
         type: 'movie',
@@ -81,6 +83,7 @@ const searchMedia = async (req, res) => {
       });
 
       results = response.data.results.map(show => ({
+        id: show.id.toString(),
         externalId: show.id.toString(),
         title: show.name,
         type: 'tv',
@@ -130,6 +133,7 @@ const getPopularMedia = async (req, res) => {
       });
       
       results = response.data.results.map(game => ({
+        id: game.id.toString(),
         externalId: game.id.toString(),
         title: game.name,
         type: 'game',
@@ -146,6 +150,7 @@ const getPopularMedia = async (req, res) => {
       });
 
       results = response.data.results.map(movie => ({
+        id: movie.id.toString(),
         externalId: movie.id.toString(),
         title: movie.title,
         type: 'movie',
@@ -163,6 +168,7 @@ const getPopularMedia = async (req, res) => {
       });
 
       results = response.data.results.map(show => ({
+        id: show.id.toString(),
         externalId: show.id.toString(),
         title: show.name,
         type: 'tv',
@@ -202,6 +208,7 @@ const getMediaDetails = async (req, res) => {
       });
       
       details = {
+        id: response.data.id.toString(),
         externalId: response.data.id.toString(),
         title: response.data.name,
         type: 'game',
@@ -220,6 +227,7 @@ const getMediaDetails = async (req, res) => {
       });
 
       details = {
+        id: response.data.id.toString(),
         externalId: response.data.id.toString(),
         title: response.data.title,
         type: 'movie',
@@ -248,6 +256,7 @@ const getMediaDetails = async (req, res) => {
       }
 
       details = {
+        id: showData.id.toString(),
         externalId: showData.id.toString(),
         title: showData.name,
         type: 'tv',

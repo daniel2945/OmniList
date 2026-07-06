@@ -14,9 +14,11 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="search" element={<Search />} />
+          <Route path="search/:activeTab" element={<Search />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="my-list" element={<MyList />} />
+          <Route path="my-list/:activeFilter" element={<MyList />} />
           <Route path="item/:type/:id" element={<ItemDetails />} />
         </Route>
       </Routes>

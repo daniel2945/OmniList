@@ -18,12 +18,13 @@ const collectionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['movie', 'tv', 'game'],
-    required: true
+    enum: ['movie', 'tv', 'game', 'destination'], 
+    required: true,
+    default: 'movie'
   },
   items: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'MediaItem'
+    ref: 'Item' 
   }]
 }, { timestamps: true });
 
