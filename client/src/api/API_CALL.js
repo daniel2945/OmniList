@@ -1,34 +1,22 @@
-// בדיקה דינמית המבוססת על window.location.hostname
-const getBaseUrl = async () => {
+// קביעת ה-BASE_URL בצורה סינכרונית מיידית
+const getBaseUrl = () => {
   const isLocalhost =
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1";
 
-  // אם אנחנו באוויר (לא ב-localhost), נשתמש ישירות בשרת רנדר ללא צורך בהשהיה של הפינג
+  // אם אנחנו באוויר ב-Vercel (לא localhost) -> הולכים ישר לרנדר
   if (!isLocalhost) {
     return "https://omnilist-api-2zzc.onrender.com/api";
   }
 
-  // אם אנחנו ב-localhost, נבדוק אם הפורט המקומי 5000 פעיל
-  try {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), 600); // 600ms timeout
-
-    await fetch("http://localhost:5000/", {
-      method: "GET",
-      signal: controller.signal,
-    });
-
-    clearTimeout(id);
-    return "http://localhost:5000/api";
-  } catch (err) {
-    // אם השרת המקומי כבוי, נחזור לשרת ברנדר כגיבוי
-    return "https://omnilist-api-2zzc.onrender.com/api";
-  }
+  // אם אתה מפתח מקומית במחשב שלך -> הולכים לשרת המקומי ב-5000
+  return "http://localhost:5000/api";
 };
 
+// הכתובת נקבעת פעם אחת בלבד בטעינת האתר
+const BASE_URL = getBaseUrl();
+
 const API_CALL = async (endpoint, method = "GET", body = null) => {
-  const baseUrl = await getBaseUrl();
   const token = localStorage.getItem("token");
 
   const options = {
@@ -44,7 +32,8 @@ const API_CALL = async (endpoint, method = "GET", body = null) => {
   }
 
   try {
-    const res = await fetch(`${baseUrl}${endpoint}`, options);
+    // שימוש ישיר ב-BASE_URL הסינכרוני והבטוח
+    const res = await fetch(`${BASE_URL}${endpoint}`, options);
 
     const contentType = res.headers.get("content-type");
     let data = null;
@@ -53,7 +42,6 @@ const API_CALL = async (endpoint, method = "GET", body = null) => {
     }
 
     if (!res.ok) {
-      // Create a structure similar to axios error for easier migration
       const error = new Error(data?.message || data?.error || `Error: ${res.status}`);
       error.response = { data };
       throw error;
