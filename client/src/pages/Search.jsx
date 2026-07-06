@@ -63,6 +63,21 @@ const Search = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isShowingPopular, setIsShowingPopular] = useState(true);
 
+  useEffect(() => {
+    const tabLabels = {
+      movie: "סרטים",
+      tv: "סדרות",
+      game: "משחקים",
+      destination: "יעדים",
+    };
+    const currentLabel = tabLabels[activeTab] || "תוכן";
+    if (query && typeof query === 'string' && query.trim()) {
+      document.title = `OmniList - חיפוש ${currentLabel}: "${query.trim()}"`;
+    } else {
+      document.title = `OmniList - חיפוש ${currentLabel}`;
+    }
+  }, [activeTab, query]);
+
   const tabs = [
     { id: "movie", label: "סרטים", icon: <Film className="w-5 h-5" /> },
     { id: "tv", label: "סדרות", icon: <Tv className="w-5 h-5" /> },

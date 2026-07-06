@@ -1,9 +1,14 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Library, CheckCircle, ArrowLeft, Star, Film } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 
 const Home = () => {
   const { user } = useAuthStore();
+
+  useEffect(() => {
+    document.title = "OmniList - דף הבית";
+  }, []);
 
   return (
     <div className="mt-8 text-center max-w-5xl mx-auto px-4">

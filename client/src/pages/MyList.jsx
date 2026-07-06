@@ -39,6 +39,10 @@ const MyList = () => {
   const navigate = useNavigate();
   const activeFilter = urlFilter || "movie";
 
+  useEffect(() => {
+    document.title = "OmniList - הספרייה שלי";
+  }, []);
+
   const [list, setList] = useState([]);
   const [collections, setCollections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

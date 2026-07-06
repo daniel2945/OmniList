@@ -84,6 +84,14 @@ const ItemDetails = () => {
     fetchAllDetails();
   }, [type, id, user, navigate]);
 
+  useEffect(() => {
+    if (item) {
+      document.title = `OmniList - ${item.title || item.name}`;
+    } else {
+      document.title = "OmniList - פרטים";
+    }
+  }, [item]);
+
   const getStatusLabel = (status) => {
     const mapping = {
       plan_to_play: "מתכנן לשחק",

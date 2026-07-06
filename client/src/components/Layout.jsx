@@ -25,9 +25,9 @@ const Layout = () => {
           <div className="flex justify-between h-16 items-center">
             
             <div className="flex items-center gap-8">
-              <Link to="/" className="text-2xl font-bold text-indigo-600 tracking-tight flex items-center gap-2">
-                <Library className="w-7 h-7" />
-                OmniList
+              <Link to="/" className="text-2xl font-bold text-indigo-600 tracking-tight flex items-center gap-2.5">
+                <img src="/logo.jpg" alt="OmniList" className="w-8 h-8 rounded-lg shadow-xs border border-indigo-200/50 object-cover" />
+                <span>OmniList</span>
               </Link>
 
               <div className="hidden md:flex items-center gap-2 mt-1">

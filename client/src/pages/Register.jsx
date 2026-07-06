@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import useAuthStore from '../store/useAuthStore';
@@ -11,6 +11,10 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+
+  useEffect(() => {
+    document.title = "OmniList - הרשמה";
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
