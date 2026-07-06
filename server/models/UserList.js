@@ -17,7 +17,9 @@ const userListSchema = new mongoose.Schema({
     default: 'wishlist' 
   },
   rating: { type: Number, min: 1, max: 10 },
-  review: { type: String }
+  review: { type: String },
+  // -- השדה החדש לסדר וארגון (Drag & Drop) --
+  orderIndex: { type: Number, default: 0 }
 }, { timestamps: true });
 
 // אינדקס שמונע מהמשתמש להוסיף את אותו פריט פעמיים לרשימה שלו

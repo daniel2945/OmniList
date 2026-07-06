@@ -1,18 +1,23 @@
 const Collection = require('../models/Collection');
 const MediaItem = require('../models/MediaItem'); 
 
-// יצירת אוסף חדש
+// יצירת אוסף חדש עם הגדרת סוג מדיה
 const createCollection = async (req, res) => {
   try {
-    const { name, description } = req.body;
-    if (!name) {
-      return res.status(400).json({ message: 'Collection name is required' });
+    const { name, description, type } = req.body;
+    if (!name || !type) {
+      return res.status(400).json({ message: 'Collection name and type are required' });
+    }
+
+    if (!['movie', 'tv', 'game'].includes(type)) {
+      return res.status(400).json({ message: 'Invalid collection type. Must be movie, tv, or game' });
     }
 
     const newCollection = new Collection({
       user: req.user.id,
       name,
-      description
+      description,
+      type
     });
 
     await newCollection.save();
@@ -34,7 +39,7 @@ const getUserCollections = async (req, res) => {
   }
 };
 
-// הוספת פריט אל תוך אוסף
+// הוספת פריט אל תוך אוסף עם בדיקת התאמת סוג (Validation)
 const addItemToCollection = async (req, res) => {
   try {
     const { collectionId } = req.params;
@@ -47,6 +52,19 @@ const addItemToCollection = async (req, res) => {
     const collection = await Collection.findOne({ _id: collectionId, user: req.user.id });
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
+    }
+
+    // שליפת הפריט כדי לבדוק את הסוג שלו
+    const mediaItem = await MediaItem.findById(mediaItemId);
+    if (!mediaItem) {
+      return res.status(404).json({ message: 'Media item not found' });
+    }
+
+    // ולידציה: בדיקה האם סוג הפריט תואם לסוג האוסף
+    if (mediaItem.type !== collection.type) {
+      return res.status(400).json({ 
+        message: `Validation failed: Cannot add a ${mediaItem.type} item to a ${collection.type} collection.` 
+      });
     }
 
     if (collection.items.includes(mediaItemId)) {
@@ -63,7 +81,32 @@ const addItemToCollection = async (req, res) => {
   }
 };
 
-// מחיקת אוסף (טרילוגיה) שלם
+// עדכון סדר הפריטים בתוך האוסף
+const updateCollectionOrder = async (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const { orderedMediaIds } = req.body; 
+
+    if (!Array.isArray(orderedMediaIds)) {
+      return res.status(400).json({ message: 'Expected an array of media IDs' });
+    }
+
+    const collection = await Collection.findOne({ _id: collectionId, user: req.user.id });
+    if (!collection) {
+      return res.status(404).json({ message: 'Collection not found' });
+    }
+
+    collection.items = orderedMediaIds;
+    await collection.save();
+
+    res.json({ message: 'Collection order updated successfully', collection });
+  } catch (error) {
+    console.error('Error updating collection order:', error);
+    res.status(500).json({ message: 'Server error while updating collection order' });
+  }
+};
+
+// מחיקת אוסף
 const deleteCollection = async (req, res) => {
   try {
     const { collectionId } = req.params;
@@ -104,6 +147,7 @@ module.exports = {
   createCollection, 
   getUserCollections, 
   addItemToCollection,
+  updateCollectionOrder, 
   deleteCollection,
   removeMediaFromCollection
 };

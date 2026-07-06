@@ -16,9 +16,14 @@ const collectionSchema = new mongoose.Schema({
     default: '',
     trim: true
   },
+  type: {
+    type: String,
+    enum: ['movie', 'tv', 'game'],
+    required: true
+  },
   items: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'MediaItem' // תוקן במדויק לשם המודל שלך
+    ref: 'MediaItem'
   }]
 }, { timestamps: true });
 

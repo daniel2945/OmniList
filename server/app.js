@@ -6,7 +6,7 @@ const authRouter = require('./routes/authRouter');
 const mediaRouter = require('./routes/mediaRouter');
 const listRouter = require('./routes/listRouter');
 const aiRouter = require('./routes/aiRouter');
-const collectionRouter = require('./routes/collectionRoutes');
+const collectionRouter = require('./routes/collectionRouter');
 
 
 // טעינת משתני סביבה מקובץ .env
