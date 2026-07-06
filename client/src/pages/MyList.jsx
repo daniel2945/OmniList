@@ -404,34 +404,34 @@ const MyList = () => {
             </div>
 
             {/* ניווט הטאבים עם cursor-pointer קבוע */}
-            <div className="flex flex-wrap justify-center bg-slate-100 p-1 rounded-xl border border-slate-200/40">
+            <div className="flex overflow-x-auto md:flex-wrap justify-start md:justify-center bg-slate-100 p-1 rounded-xl border border-slate-200/40 w-full md:w-auto scrollbar-none gap-1">
               <button
                 onClick={() => navigate("/my-list/movie")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "movie" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "movie" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
               >
                 <Film className="w-4 h-4" /> סרטים
               </button>
               <button
                 onClick={() => navigate("/my-list/tv")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "tv" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "tv" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
               >
                 <Tv className="w-4 h-4" /> סדרות
               </button>
               <button
                 onClick={() => navigate("/my-list/game")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "game" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "game" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
               >
                 <Gamepad2 className="w-4 h-4" /> משחקים
               </button>
               <button
                 onClick={() => navigate("/my-list/destination")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "destination" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "destination" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
               >
                 <MapPin className="w-4 h-4" /> יעדים
               </button>
               <button
                 onClick={() => navigate("/my-list/collections")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "collections" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "collections" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
               >
                 <FolderHeart className="w-4 h-4" /> אוספים ({collections.length})
               </button>
@@ -848,7 +848,7 @@ const MyList = () => {
                           return (
                             <div
                               key={String(item._id)}
-                              className="group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5 transition-all duration-300 relative"
+                              className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5 transition-all duration-300 relative ${currentEffectiveViewMode === "list" ? "flex h-28 items-center" : "block"}`}
                             >
                               <button
                                 onClick={(e) =>
@@ -997,7 +997,7 @@ const MyList = () => {
                                                   snapshot.isDragging
                                                     ? "shadow-2xl ring-2 ring-indigo-500 border-transparent z-50 scale-102 bg-white"
                                                     : ""
-                                                }`}
+                                                } ${currentEffectiveViewMode === "list" ? "flex h-28 items-center" : "block"}`}
                                               >
                                                 {isManualSort && (
                                                   <div
@@ -1087,7 +1087,7 @@ const MyList = () => {
                                     return (
                                       <div
                                         key={String(item._id)}
-                                        className="group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 relative"
+                                        className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 relative ${currentEffectiveViewMode === "list" ? "flex h-28 items-center" : "block"}`}
                                       >
                                         <button
                                           onClick={(e) =>

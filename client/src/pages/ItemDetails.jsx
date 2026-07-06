@@ -252,11 +252,11 @@ const ItemDetails = () => {
               </div>
             )}
 
-            <h1 className="text-3xl md:text-5xl font-bold text-white md:text-slate-900 mb-2 drop-shadow-md md:drop-shadow-none">
+            <h1 className="text-3xl md:text-5xl font-bold text-slate-800 md:text-white mb-2 drop-shadow-md md:drop-shadow-none">
               {item?.title || item?.name}
             </h1>
 
-            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-sm font-medium text-slate-200 md:text-slate-600 mb-6">
+            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-sm font-medium text-slate-600 md:text-slate-300 mb-6">
               {item?.releaseDate && (
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -331,14 +331,14 @@ const ItemDetails = () => {
                 </a>
               )}
 
-              <span className="bg-indigo-600/20 md:bg-indigo-100 text-indigo-100 md:text-indigo-700 px-2 py-0.5 rounded uppercase tracking-wider">
+              <span className="bg-indigo-50 md:bg-indigo-500/20 text-indigo-700 md:text-indigo-100 px-2 py-0.5 rounded uppercase tracking-wider">
                 {type}
               </span>
             </div>
 
             <div
-              className="text-slate-700 leading-relaxed mb-8 max-w-3xl text-lg text-right"
-              dir="ltr"
+              className="text-slate-700 leading-relaxed mb-8 max-w-3xl text-lg text-center md:text-right"
+              dir="auto"
             >
               <div dangerouslySetInnerHTML={{ __html: descriptionText }} />
             </div>
@@ -369,17 +369,17 @@ const ItemDetails = () => {
             )}
 
             {/* כפתורי ניהול */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-4">
-              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 inline-block text-right shadow-sm">
-                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2 justify-end">
+            <div className="flex flex-col md:flex-row gap-4 w-full justify-center md:justify-start">
+              <div className="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200 w-full md:w-auto text-right shadow-sm">
+                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2 justify-end text-sm md:text-base">
                   {type === "destination" ? "ניהול ביעדים שלי" : "ניהול בספרייה שלי"}{" "}
                   <Library className="w-5 h-5 text-indigo-600" />
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full">
                   <select
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="bg-white border border-slate-300 text-slate-700 py-2 px-4 rounded-lg outline-none min-w-[160px]"
+                    className="bg-white border border-slate-300 text-slate-700 py-2.5 px-3 md:px-4 rounded-xl outline-none flex-grow text-sm cursor-pointer"
                   >
                     <option value="" disabled>
                       בחר סטטוס...
@@ -393,7 +393,7 @@ const ItemDetails = () => {
                   <button
                     onClick={handleSaveToList}
                     disabled={isSaving || !selectedStatus}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors flex items-center gap-1 cursor-pointer text-sm flex-shrink-0"
                   >
                     {isSaving ? (
                       "שומר..."
@@ -408,16 +408,16 @@ const ItemDetails = () => {
 
               {/* פאנל ההוספה לאוספים */}
               {mediaItemId && (
-                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 inline-block text-right shadow-sm animate-fade-in">
-                  <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2 justify-end">
+                <div className="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200 w-full md:w-auto text-right shadow-sm animate-fade-in">
+                  <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2 justify-end text-sm md:text-base">
                     {type === "destination" ? "הוסף לאוסף טיול" : "הוסף לאוסף / טרילוגיה"}{" "}
                     <Layers className="w-5 h-5 text-indigo-600" />
                   </h3>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 w-full">
                     <select
                       value={selectedCollection}
                       onChange={(e) => setSelectedCollection(e.target.value)}
-                      className="bg-white border border-slate-300 text-slate-700 py-2 px-4 rounded-lg outline-none min-w-[180px] cursor-pointer"
+                      className="bg-white border border-slate-300 text-slate-700 py-2.5 px-3 md:px-4 rounded-xl outline-none flex-grow text-sm cursor-pointer"
                       disabled={collections.length === 0}
                     >
                       {collections.length > 0 ? (
@@ -438,7 +438,7 @@ const ItemDetails = () => {
                     <button
                       onClick={handleAddToCollection}
                       disabled={!selectedCollection || collections.length === 0}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-5 rounded-lg transition-colors cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:bg-slate-300"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-colors cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:bg-slate-300 text-sm flex-shrink-0"
                     >
                       שייך פריט
                     </button>
