@@ -364,67 +364,71 @@ const MyList = () => {
 
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center w-full xl:w-auto">
             {/* כפתורי סדר ותצוגה */}
-            <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/80 shadow-xs shrink-0">
+            <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/80 shadow-xs shrink-0 w-full md:w-auto justify-center md:justify-start">
               {activeFilter !== "destination" && (
                 <>
                   <button
                     onClick={handleToggleManualSort}
-                    className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${isManualSort ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-200"}`}
+                    className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-grow md:flex-grow-0 ${isManualSort ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-200"}`}
                   >
                     {isManualSort ? "סיום סידור" : "סדר ידנית"}
                   </button>
                   <div className="h-5 w-px bg-slate-300 mx-1"></div>
                 </>
               )}
-              <button
-                disabled={isManualSort && activeFilter !== "destination"}
-                onClick={() => handleToggleViewMode("grid")}
-                className={`p-1.5 rounded-lg transition-colors ${(isManualSort && activeFilter !== "destination") ? "opacity-30 cursor-not-allowed" : "cursor-pointer"} ${viewMode === "grid" && !(isManualSort && activeFilter !== "destination") ? "bg-white shadow-xs text-indigo-600 border border-slate-200/50" : "text-slate-400 hover:text-slate-700"}`}
-              >
-                <LayoutGrid className="w-5 h-5" />
-              </button>
-              <button
-                disabled={isManualSort && activeFilter !== "destination"}
-                onClick={() => handleToggleViewMode("list")}
-                className={`p-1.5 rounded-lg transition-colors ${(isManualSort && activeFilter !== "destination") ? "opacity-30 cursor-not-allowed" : "cursor-pointer"} ${viewMode === "list" || (isManualSort && activeFilter !== "destination") ? "bg-white shadow-xs text-indigo-600 border border-slate-200/50" : "text-slate-400 hover:text-slate-700"}`}
-              >
-                <ListIcon className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  disabled={isManualSort && activeFilter !== "destination"}
+                  onClick={() => handleToggleViewMode("grid")}
+                  className={`p-1.5 rounded-lg transition-colors ${(isManualSort && activeFilter !== "destination") ? "opacity-30 cursor-not-allowed" : "cursor-pointer"} ${viewMode === "grid" && !(isManualSort && activeFilter !== "destination") ? "bg-white shadow-xs text-indigo-600 border border-slate-200/50" : "text-slate-400 hover:text-slate-700"}`}
+                >
+                  <LayoutGrid className="w-5 h-5" />
+                </button>
+                <button
+                  disabled={isManualSort && activeFilter !== "destination"}
+                  onClick={() => handleToggleViewMode("list")}
+                  className={`p-1.5 rounded-lg transition-colors ${(isManualSort && activeFilter !== "destination") ? "opacity-30 cursor-not-allowed" : "cursor-pointer"} ${viewMode === "list" || (isManualSort && activeFilter !== "destination") ? "bg-white shadow-xs text-indigo-600 border border-slate-200/50" : "text-slate-400 hover:text-slate-700"}`}
+                >
+                  <ListIcon className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            {/* טאבים גלילים אופקית */}
-            <div className="w-full overflow-x-auto scrollbar-none">
-              <div className="flex justify-start md:justify-center bg-slate-100 p-1 rounded-xl border border-slate-200/40 w-max min-w-full gap-1">
-                <button
-                  onClick={() => navigate("/my-list/movie")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "movie" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-                >
-                  <Film className="w-4 h-4 shrink-0" /> סרטים
-                </button>
-                <button
-                  onClick={() => navigate("/my-list/tv")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "tv" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-                >
-                  <Tv className="w-4 h-4 shrink-0" /> סדרות
-                </button>
-                <button
-                  onClick={() => navigate("/my-list/game")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "game" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-                >
-                  <Gamepad2 className="w-4 h-4 shrink-0" /> משחקים
-                </button>
-                <button
-                  onClick={() => navigate("/my-list/destination")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "destination" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-                >
-                  <MapPin className="w-4 h-4 shrink-0" /> יעדים
-                </button>
-                <button
-                  onClick={() => navigate("/my-list/collections")}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "collections" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-                >
-                  <FolderHeart className="w-4 h-4 shrink-0" /> אוספים ({collections.length})
-                </button>
+            {/* טאבים מתוקנים לגלילה חלקה בנייד */}
+            <div className="w-full overflow-hidden relative rounded-xl border border-slate-200/40 bg-slate-100">
+              <div className="flex overflow-x-auto scrollbar-none p-1.5 w-full snap-x">
+                <div className="flex gap-1.5 min-w-max mx-auto">
+                  <button
+                    onClick={() => navigate("/my-list/movie")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer snap-start flex-shrink-0 ${activeFilter === "movie" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:bg-slate-200"}`}
+                  >
+                    <Film className="w-4 h-4" /> סרטים
+                  </button>
+                  <button
+                    onClick={() => navigate("/my-list/tv")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer snap-start flex-shrink-0 ${activeFilter === "tv" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:bg-slate-200"}`}
+                  >
+                    <Tv className="w-4 h-4" /> סדרות
+                  </button>
+                  <button
+                    onClick={() => navigate("/my-list/game")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer snap-start flex-shrink-0 ${activeFilter === "game" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:bg-slate-200"}`}
+                  >
+                    <Gamepad2 className="w-4 h-4" /> משחקים
+                  </button>
+                  <button
+                    onClick={() => navigate("/my-list/destination")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer snap-start flex-shrink-0 ${activeFilter === "destination" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:bg-slate-200"}`}
+                  >
+                    <MapPin className="w-4 h-4" /> יעדים
+                  </button>
+                  <button
+                    onClick={() => navigate("/my-list/collections")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer snap-start flex-shrink-0 ${activeFilter === "collections" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:bg-slate-200"}`}
+                  >
+                    <FolderHeart className="w-4 h-4" /> אוספים ({collections.length})
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -558,7 +562,6 @@ const MyList = () => {
                       >
                         {(provided) => {
                           if ((col.type || "movie") === "destination") {
-                            // Group items by country
                             const countryGroups = {};
                             col.items.forEach((item, index) => {
                               if (!item) return;
@@ -650,19 +653,20 @@ const MyList = () => {
                                                       )}
                                                     </div>
                                                     <div
-                                                      className={`p-2.5 md:p-3 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
+                                                      className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                                     >
-                                                      <h4
-                                                        className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm text-center"}`}
+                                                      <h3
+                                                        className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
+                                                        title={item.title}
                                                       >
                                                         {item.title}
-                                                      </h4>
+                                                      </h3>
                                                       {itemStatus && (
                                                         <div
-                                                          className={`flex items-center text-xs mt-auto ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
+                                                          className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
                                                         >
                                                           <span
-                                                            className={`px-2 py-0.5 border rounded-md font-bold text-[10px] sm:text-xs ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(itemStatus)}`}
+                                                            className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(itemStatus)}`}
                                                           >
                                                             {getStatusHebrew(itemStatus)}
                                                           </span>
@@ -684,7 +688,6 @@ const MyList = () => {
                             );
                           }
 
-                          // Non-destination layout (original)
                           return (
                             <div
                               {...provided.droppableProps}
@@ -755,19 +758,20 @@ const MyList = () => {
                                             )}
                                           </div>
                                           <div
-                                            className={`p-2.5 md:p-3 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
+                                            className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                           >
-                                            <h4
-                                              className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm text-center"}`}
+                                            <h3
+                                              className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
+                                              title={item.title}
                                             >
                                               {item.title}
-                                            </h4>
+                                            </h3>
                                             {itemStatus && (
                                               <div
-                                                className={`flex items-center text-xs mt-auto ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
+                                                className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
                                               >
                                                 <span
-                                                  className={`px-2 py-0.5 border rounded-md font-bold text-[10px] sm:text-xs ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(itemStatus)}`}
+                                                  className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(itemStatus)}`}
                                                 >
                                                   {getStatusHebrew(itemStatus)}
                                                 </span>
@@ -872,23 +876,23 @@ const MyList = () => {
                                 </div>
 
                                 <div
-                                  className={`p-2.5 md:p-4 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
+                                  className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                 >
                                   <h3
-                                    className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm mb-2 text-center"}`}
+                                    className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
                                     title={media.title}
                                   >
                                     {media.title}
                                   </h3>
 
                                   <div
-                                    className={`flex items-center text-[10px] sm:text-xs mt-auto gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-between"}`}
+                                    className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
                                   >
-                                    <span className={`${currentEffectiveViewMode === "list" ? "inline-block" : "hidden sm:inline-block"} bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[10px]`}>
+                                    <span className={`bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]`}>
                                       {media.type}
                                     </span>
                                     <span
-                                      className={`px-2 py-0.5 border rounded-md font-bold ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(item.status)}`}
+                                      className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(item.status)}`}
                                     >
                                       {getStatusHebrew(item.status)}
                                     </span>
@@ -1028,23 +1032,23 @@ const MyList = () => {
                                                   </div>
 
                                                   <div
-                                                    className={`p-2.5 md:p-4 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
+                                                    className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                                   >
                                                     <h3
-                                                      className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm mb-2 text-center"}`}
+                                                      className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
                                                       title={media.title}
                                                     >
                                                       {media.title}
                                                     </h3>
 
                                                     <div
-                                                      className={`flex items-center text-[10px] sm:text-xs mt-auto gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-between"}`}
+                                                      className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
                                                     >
-                                                      <span className={`${currentEffectiveViewMode === "list" ? "inline-block" : "hidden sm:inline-block"} bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[10px]`}>
+                                                      <span className={`bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]`}>
                                                         {media.type}
                                                       </span>
                                                       <span
-                                                        className={`px-2 py-0.5 border rounded-md font-bold ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(item.status)}`}
+                                                        className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(item.status)}`}
                                                       >
                                                         {getStatusHebrew(item.status)}
                                                       </span>
@@ -1108,23 +1112,23 @@ const MyList = () => {
                                           </div>
 
                                           <div
-                                            className={`p-2.5 md:p-4 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
+                                            className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                           >
                                             <h3
-                                              className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm text-center"}`}
+                                              className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
                                               title={media.title}
                                             >
                                               {media.title}
                                             </h3>
 
                                             <div
-                                              className={`flex items-center text-xs mt-auto gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-between"}`}
+                                              className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
                                             >
-                                              <span className={`${currentEffectiveViewMode === "list" ? "inline-block" : "hidden sm:inline-block"} bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md uppercase font-bold tracking-wider text-[10px]`}>
+                                              <span className={`bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]`}>
                                                 {media.type}
                                               </span>
                                               <span
-                                                className={`px-2.5 py-1 border rounded-md font-bold ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(item.status)}`}
+                                                className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(item.status)}`}
                                               >
                                                 {getStatusHebrew(item.status)}
                                               </span>
