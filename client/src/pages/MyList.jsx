@@ -47,7 +47,6 @@ const MyList = () => {
   const [collections, setCollections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // מצב פתיחה/סגירה של קטגוריות
   const [collapsedCategories, setCollapsedCategories] = useState({
     planned: false,
     current: false,
@@ -55,7 +54,6 @@ const MyList = () => {
     dropped: false,
   });
 
-  // טעינה ושמירה של מצבי תצוגה ב-localStorage
   const [viewMode, setViewMode] = useState(
     () => localStorage.getItem("viewMode") || "grid",
   );
@@ -106,14 +104,12 @@ const MyList = () => {
     }));
   };
 
-  // מניעת כפל פריטים שנמצאים באוספים
   const itemsInCollections = new Set(
     collections.flatMap((col) =>
       (col.items || []).filter(Boolean).map((item) => item._id ? item._id.toString() : item.toString()),
     ),
   );
 
-  // סינון רשימה לפי הטאב הפעיל
   const filteredList = list.filter((item) => {
     if (!item.mediaItem) return false;
     const isTypeMatch = item.mediaItem.type === activeFilter;
@@ -122,7 +118,6 @@ const MyList = () => {
     return isTypeMatch && !isAlreadyInCollection;
   });
 
-  // פיצול הרשימה המסוננת ל-4 קבוצות הסטטוסים
   const plannedItems = filteredList.filter(
     (item) => item.status === "plan_to_watch" || item.status === "plan_to_play"
   ).sort((a, b) => {
@@ -144,12 +139,10 @@ const MyList = () => {
     (item) => item.status === "dropped"
   ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  // מיון עבור יעדים (פשוט לפי תאריך יצירה)
   const sortedFilteredList = [...filteredList].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
 
-  // הגדרת כותרות הקטגוריות
   const getCategoryConfig = () => {
     if (activeFilter === "game") {
       return [
@@ -168,7 +161,6 @@ const MyList = () => {
     }
   };
 
-  // יצירת מפה של סטטוסים לכל פריט מדיה כדי להציג אותם גם באוספים
   const statusMap = new Map(
     list
       .filter((item) => item.mediaItem)
@@ -178,7 +170,6 @@ const MyList = () => {
       })
   );
 
-  // מנגנון גרירה חכם עם droppableId דינמי למניעת באגים במעברי טאבים
   const handleDragEnd = async (result) => {
     const { source, destination, type } = result;
     if (!destination) return;
@@ -188,7 +179,6 @@ const MyList = () => {
     )
       return;
 
-    // סידור ידני מתאפשר אך ורק עבור הפריטים ה-"מתוכננים"
     if (type === "MAIN_LIST" && source.droppableId === "planned") {
       const items = Array.from(plannedItems);
       const [reorderedItem] = items.splice(source.index, 1);
@@ -244,7 +234,6 @@ const MyList = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    // התראת מחיקה מותאמת אישית עם כפתורי אישור וביטול מובנים
     toast((t) => (
       <div className="flex flex-col gap-3 text-right p-1" dir="rtl">
         <p className="text-sm font-semibold text-slate-800">האם למחוק פריט זה מהספרייה?</p>
@@ -364,18 +353,18 @@ const MyList = () => {
       </div>
     );
 
-  // מאלץ רשימה אנכית בזמן סידור ידני (פרט ליעדים שלא תומכים בסידור ידני)
   const currentEffectiveViewMode = (isManualSort && activeFilter !== "destination") ? "list" : viewMode;
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="max-w-7xl mx-auto px-2">
-        <div className="flex flex-col xl:flex-row justify-between items-center mb-8 border-b border-slate-200 pb-6 gap-4">
-          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">הספרייה שלי</h1>
+      <div className="max-w-7xl mx-auto px-4 md:px-2">
+        {/* אזור הניווט העליון מותאם לנייד */}
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 border-b border-slate-200 pb-6 gap-5">
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight shrink-0">הספרייה שלי</h1>
 
-          <div className="flex flex-col md:flex-row gap-4 items-center">
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center w-full xl:w-auto">
             {/* כפתורי סדר ותצוגה */}
-            <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/80 shadow-xs shrink-0">
               {activeFilter !== "destination" && (
                 <>
                   <button
@@ -403,38 +392,40 @@ const MyList = () => {
               </button>
             </div>
 
-            {/* ניווט הטאבים עם cursor-pointer קבוע */}
-            <div className="flex overflow-x-auto md:flex-wrap justify-start md:justify-center bg-slate-100 p-1 rounded-xl border border-slate-200/40 w-full md:w-auto scrollbar-none gap-1">
-              <button
-                onClick={() => navigate("/my-list/movie")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "movie" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-              >
-                <Film className="w-4 h-4" /> סרטים
-              </button>
-              <button
-                onClick={() => navigate("/my-list/tv")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "tv" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-              >
-                <Tv className="w-4 h-4" /> סדרות
-              </button>
-              <button
-                onClick={() => navigate("/my-list/game")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "game" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-              >
-                <Gamepad2 className="w-4 h-4" /> משחקים
-              </button>
-              <button
-                onClick={() => navigate("/my-list/destination")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "destination" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-              >
-                <MapPin className="w-4 h-4" /> יעדים
-              </button>
-              <button
-                onClick={() => navigate("/my-list/collections")}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer flex-shrink-0 ${activeFilter === "collections" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
-              >
-                <FolderHeart className="w-4 h-4" /> אוספים ({collections.length})
-              </button>
+            {/* טאבים גלילים אופקית */}
+            <div className="w-full overflow-x-auto scrollbar-none">
+              <div className="flex justify-start md:justify-center bg-slate-100 p-1 rounded-xl border border-slate-200/40 w-max min-w-full gap-1">
+                <button
+                  onClick={() => navigate("/my-list/movie")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "movie" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  <Film className="w-4 h-4 shrink-0" /> סרטים
+                </button>
+                <button
+                  onClick={() => navigate("/my-list/tv")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "tv" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  <Tv className="w-4 h-4 shrink-0" /> סדרות
+                </button>
+                <button
+                  onClick={() => navigate("/my-list/game")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "game" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  <Gamepad2 className="w-4 h-4 shrink-0" /> משחקים
+                </button>
+                <button
+                  onClick={() => navigate("/my-list/destination")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "destination" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  <MapPin className="w-4 h-4 shrink-0" /> יעדים
+                </button>
+                <button
+                  onClick={() => navigate("/my-list/collections")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${activeFilter === "collections" ? "bg-white shadow-sm text-indigo-600" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  <FolderHeart className="w-4 h-4 shrink-0" /> אוספים ({collections.length})
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -530,26 +521,26 @@ const MyList = () => {
                 {collections.map((col) => (
                   <div
                     key={col._id}
-                    className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs relative group text-right"
+                    className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs relative group text-right"
                   >
                     <button
                       onClick={() => handleDeleteCollection(col._id)}
-                      className="absolute top-5 left-5 text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all cursor-pointer border border-transparent hover:border-slate-200 shadow-2xs"
+                      className="absolute top-4 left-4 text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all cursor-pointer border border-transparent hover:border-slate-200 shadow-2xs"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
 
-                    <div className="text-right mb-4 border-b border-slate-100 pb-3 pr-12">
-                      <div className="flex items-center gap-2 justify-end">
+                    <div className="text-right mb-4 border-b border-slate-100 pb-3 pl-12">
+                      <div className="flex flex-wrap items-center gap-2 justify-end">
                         <span className="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wide border border-indigo-100">
                           {col.type || "movie"}
                         </span>
-                        <h2 className="text-xl font-extrabold text-slate-800">
+                        <h2 className="text-xl font-extrabold text-slate-800 break-words w-full sm:w-auto mt-2 sm:mt-0">
                           {col.name}
                         </h2>
                       </div>
                       {col.description && (
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-sm text-slate-500 mt-1 break-words">
                           {col.description}
                         </p>
                       )}
@@ -593,7 +584,7 @@ const MyList = () => {
                                       )}
                                       <div className={
                                         currentEffectiveViewMode === "grid"
-                                          ? "grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4"
+                                          ? "grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4"
                                           : "flex flex-col gap-3 max-w-2xl mx-auto w-full"
                                       }>
                                         {groupItems.map(({ item, index }) => {
@@ -614,7 +605,7 @@ const MyList = () => {
                                                     snapshot.isDragging
                                                       ? "shadow-xl ring-2 ring-indigo-500 border-transparent z-50 scale-105 bg-white"
                                                       : "border-slate-200/80 hover:border-indigo-300"
-                                                  } ${currentEffectiveViewMode === "list" ? "flex h-24 items-center" : "block"}`}
+                                                  } ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
                                                 >
                                                   {isManualSort && (
                                                     <div
@@ -633,17 +624,17 @@ const MyList = () => {
                                                         item._id,
                                                       )
                                                     }
-                                                    className="absolute top-1 left-1 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-colors opacity-0 group-hover/card:opacity-100 cursor-pointer shadow-sm border border-slate-200"
+                                                    className="absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-colors opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-sm border border-slate-200"
                                                   >
                                                     <X className="w-4 h-4" />
                                                   </button>
 
                                                   <ItemWrapper
                                                     to={`/item/${item.type}/${item.externalId}`}
-                                                    className={`flex w-full h-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row-reverse" : "flex-col"}`}
+                                                    className={`flex w-full h-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
                                                   >
                                                     <div
-                                                      className={`bg-slate-100 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-16 h-full" : "w-full aspect-[2/3]"}`}
+                                                      className={`bg-slate-100 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                                     >
                                                       {item.posterPath ? (
                                                         <img
@@ -659,10 +650,10 @@ const MyList = () => {
                                                       )}
                                                     </div>
                                                     <div
-                                                      className={`flex flex-col flex-grow ${currentEffectiveViewMode === "list" ? "p-3 text-right justify-between" : "p-3"}`}
+                                                      className={`p-2.5 md:p-3 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
                                                     >
                                                       <h4
-                                                        className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base mr-6" : "text-sm text-center"}`}
+                                                        className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm text-center"}`}
                                                       >
                                                         {item.title}
                                                       </h4>
@@ -671,7 +662,7 @@ const MyList = () => {
                                                           className={`flex items-center text-xs mt-auto ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
                                                         >
                                                           <span
-                                                            className={`px-2 py-0.5 border rounded-md font-bold ${getStatusColor(itemStatus)}`}
+                                                            className={`px-2 py-0.5 border rounded-md font-bold text-[10px] sm:text-xs ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(itemStatus)}`}
                                                           >
                                                             {getStatusHebrew(itemStatus)}
                                                           </span>
@@ -700,7 +691,7 @@ const MyList = () => {
                               ref={provided.innerRef}
                               className={
                                 currentEffectiveViewMode === "grid"
-                                  ? "grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4"
+                                  ? "grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4"
                                   : "flex flex-col gap-3 max-w-2xl mx-auto w-full"
                               }
                             >
@@ -723,7 +714,7 @@ const MyList = () => {
                                           snapshot.isDragging
                                             ? "shadow-xl ring-2 ring-indigo-500 border-transparent z-50 scale-105 bg-white"
                                             : "border-slate-200/80 hover:border-indigo-300"
-                                        } ${currentEffectiveViewMode === "list" ? "flex h-24 items-center" : "block"}`}
+                                        } ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
                                       >
                                         {isManualSort && (
                                           <div
@@ -738,17 +729,17 @@ const MyList = () => {
                                           onClick={(e) =>
                                             handleRemoveFromCollection(e, col._id, item._id)
                                           }
-                                          className="absolute top-1 left-1 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-colors opacity-0 group-hover/card:opacity-100 cursor-pointer shadow-sm border border-slate-200"
+                                          className="absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-colors opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-sm border border-slate-200"
                                         >
                                           <X className="w-4 h-4" />
                                         </button>
 
                                         <ItemWrapper
                                           to={`/item/${item.type}/${item.externalId}`}
-                                          className={`flex w-full h-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row-reverse" : "flex-col"}`}
+                                          className={`flex w-full h-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
                                         >
                                           <div
-                                            className={`bg-slate-100 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-16 h-full" : "w-full aspect-[2/3]"}`}
+                                            className={`bg-slate-100 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                           >
                                             {item.posterPath ? (
                                               <img
@@ -764,10 +755,10 @@ const MyList = () => {
                                             )}
                                           </div>
                                           <div
-                                            className={`flex flex-col flex-grow ${currentEffectiveViewMode === "list" ? "p-3 text-right justify-between" : "p-3"}`}
+                                            className={`p-2.5 md:p-3 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
                                           >
                                             <h4
-                                              className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base mr-6" : "text-sm text-center"}`}
+                                              className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm text-center"}`}
                                             >
                                               {item.title}
                                             </h4>
@@ -776,7 +767,7 @@ const MyList = () => {
                                                 className={`flex items-center text-xs mt-auto ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
                                               >
                                                 <span
-                                                  className={`px-2 py-0.5 border rounded-md font-bold ${getStatusColor(itemStatus)}`}
+                                                  className={`px-2 py-0.5 border rounded-md font-bold text-[10px] sm:text-xs ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(itemStatus)}`}
                                                 >
                                                   {getStatusHebrew(itemStatus)}
                                                 </span>
@@ -828,7 +819,7 @@ const MyList = () => {
                       return acc;
                     }, {})
                   ).map(([country, countryItems]) => (
-                    <div key={country} className="bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 text-right">
+                    <div key={country} className="bg-slate-50/50 p-4 sm:p-6 rounded-2xl border border-slate-200/60 text-right">
                       <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2 justify-end border-b border-slate-200 pb-2">
                         <MapPin className="w-5 h-5 text-indigo-600" />
                         <span>{country}</span>
@@ -838,7 +829,7 @@ const MyList = () => {
                       </h2>
                       <div className={
                         currentEffectiveViewMode === "grid"
-                          ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
+                          ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6"
                           : "flex flex-col gap-4 max-w-3xl mx-auto w-full"
                       }>
                         {countryItems.map((item) => {
@@ -848,23 +839,23 @@ const MyList = () => {
                           return (
                             <div
                               key={String(item._id)}
-                              className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5 transition-all duration-300 relative ${currentEffectiveViewMode === "list" ? "flex h-28 items-center" : "block"}`}
+                              className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5 transition-all duration-300 relative ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
                             >
                               <button
                                 onClick={(e) =>
                                   handleDeleteFromLibrary(e, item._id)
                                 }
-                                className="absolute top-2.5 left-2.5 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-0 group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200"
+                                className="absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
 
                               <MainItemWrapper
                                 to={`/item/${media.type}/${media.externalId}`}
-                                className={`flex h-full w-full cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row-reverse h-28" : "flex-col"}`}
+                                className={`flex h-full w-full cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
                               >
                                 <div
-                                  className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 md:w-24 h-full" : "w-full aspect-[2/3]"}`}
+                                  className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                 >
                                   {media.posterPath ? (
                                     <img
@@ -881,23 +872,23 @@ const MyList = () => {
                                 </div>
 
                                 <div
-                                  className={`p-4 flex flex-col flex-grow ${currentEffectiveViewMode === "list" ? "text-right justify-between py-3" : ""}`}
+                                  className={`p-2.5 md:p-4 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
                                 >
                                   <h3
-                                    className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base mr-6" : "text-sm mb-2"}`}
+                                    className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm mb-2 text-center"}`}
                                     title={media.title}
                                   >
                                     {media.title}
                                   </h3>
 
                                   <div
-                                    className={`flex items-center text-xs mt-auto gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-between"}`}
+                                    className={`flex items-center text-[10px] sm:text-xs mt-auto gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-between"}`}
                                   >
-                                    <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md uppercase font-bold tracking-wider">
+                                    <span className={`${currentEffectiveViewMode === "list" ? "inline-block" : "hidden sm:inline-block"} bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[10px]`}>
                                       {media.type}
                                     </span>
                                     <span
-                                      className={`px-2.5 py-1 border rounded-md font-bold ${getStatusColor(item.status)}`}
+                                      className={`px-2 py-0.5 border rounded-md font-bold ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(item.status)}`}
                                     >
                                       {getStatusHebrew(item.status)}
                                     </span>
@@ -928,14 +919,13 @@ const MyList = () => {
                     </Link>
                   </div>
                 ) : (
-                  // Categories list with Collapse and Drag-only-Planned
                   <div className="flex flex-col gap-6 mt-4">
                     {getCategoryConfig().map((cat) => {
                       const isCollapsed = collapsedCategories[cat.key];
                       const isPlanned = cat.key === "planned";
 
                       return (
-                        <div key={cat.key} className="bg-white/40 p-5 rounded-2xl border border-slate-200/60 text-right">
+                        <div key={cat.key} className="bg-white/40 p-3 sm:p-5 rounded-2xl border border-slate-200/60 text-right">
                           <div
                             onClick={() => toggleCategory(cat.key)}
                             className="flex justify-between items-center cursor-pointer select-none pb-2 border-b border-slate-200/40"
@@ -962,7 +952,6 @@ const MyList = () => {
                                   אין פריטים בקטגוריה זו.
                                 </p>
                               ) : isPlanned ? (
-                                // Planned is Droppable and Draggable
                                 <Droppable
                                   droppableId="planned"
                                   type="MAIN_LIST"
@@ -974,7 +963,7 @@ const MyList = () => {
                                       ref={provided.innerRef}
                                       className={
                                         currentEffectiveViewMode === "grid"
-                                          ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
+                                          ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6"
                                           : "flex flex-col gap-4 max-w-3xl mx-auto w-full"
                                       }
                                     >
@@ -997,7 +986,7 @@ const MyList = () => {
                                                   snapshot.isDragging
                                                     ? "shadow-2xl ring-2 ring-indigo-500 border-transparent z-50 scale-102 bg-white"
                                                     : ""
-                                                } ${currentEffectiveViewMode === "list" ? "flex h-28 items-center" : "block"}`}
+                                                } ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
                                               >
                                                 {isManualSort && (
                                                   <div
@@ -1012,17 +1001,17 @@ const MyList = () => {
                                                   onClick={(e) =>
                                                     handleDeleteFromLibrary(e, item._id)
                                                   }
-                                                  className={`absolute top-2.5 left-2.5 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-0 group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200 ${isManualSort ? "hidden" : ""}`}
+                                                  className={`absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200 ${isManualSort ? "hidden" : ""}`}
                                                 >
                                                   <Trash2 className="w-4 h-4" />
                                                 </button>
 
                                                 <MainItemWrapper
                                                   to={`/item/${media.type}/${media.externalId}`}
-                                                  className={`flex h-full w-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row-reverse h-28" : "flex-col"}`}
+                                                  className={`flex h-full w-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
                                                 >
                                                   <div
-                                                    className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 md:w-24 h-full" : "w-full aspect-[2/3]"}`}
+                                                    className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                                   >
                                                     {media.posterPath ? (
                                                       <img
@@ -1039,23 +1028,23 @@ const MyList = () => {
                                                   </div>
 
                                                   <div
-                                                    className={`p-4 flex flex-col flex-grow ${currentEffectiveViewMode === "list" ? "text-right justify-between py-3" : ""}`}
+                                                    className={`p-2.5 md:p-4 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
                                                   >
                                                     <h3
-                                                      className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base mr-6" : "text-sm text-center"}`}
+                                                      className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm mb-2 text-center"}`}
                                                       title={media.title}
                                                     >
                                                       {media.title}
                                                     </h3>
 
                                                     <div
-                                                      className={`flex items-center text-xs mt-auto gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-between"}`}
+                                                      className={`flex items-center text-[10px] sm:text-xs mt-auto gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-between"}`}
                                                     >
-                                                      <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md uppercase font-bold tracking-wider">
+                                                      <span className={`${currentEffectiveViewMode === "list" ? "inline-block" : "hidden sm:inline-block"} bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[10px]`}>
                                                         {media.type}
                                                       </span>
                                                       <span
-                                                        className={`px-2.5 py-1 border rounded-md font-bold ${getStatusColor(item.status)}`}
+                                                        className={`px-2 py-0.5 border rounded-md font-bold ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(item.status)}`}
                                                       >
                                                         {getStatusHebrew(item.status)}
                                                       </span>
@@ -1072,11 +1061,10 @@ const MyList = () => {
                                   )}
                                 </Droppable>
                               ) : (
-                                // Other categories are static grid/list cards
                                 <div
                                   className={
                                     currentEffectiveViewMode === "grid"
-                                      ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
+                                      ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6"
                                       : "flex flex-col gap-4 max-w-3xl mx-auto w-full"
                                   }
                                 >
@@ -1087,23 +1075,23 @@ const MyList = () => {
                                     return (
                                       <div
                                         key={String(item._id)}
-                                        className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 relative ${currentEffectiveViewMode === "list" ? "flex h-28 items-center" : "block"}`}
+                                        className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 relative ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
                                       >
                                         <button
                                           onClick={(e) =>
                                             handleDeleteFromLibrary(e, item._id)
                                           }
-                                          className="absolute top-2.5 left-2.5 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-0 group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200"
+                                          className="absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200"
                                         >
                                           <Trash2 className="w-4 h-4" />
                                         </button>
 
                                         <MainItemWrapper
                                           to={`/item/${media.type}/${media.externalId}`}
-                                          className={`flex h-full w-full cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row-reverse h-28" : "flex-col"}`}
+                                          className={`flex h-full w-full cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
                                         >
                                           <div
-                                            className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 md:w-24 h-full" : "w-full aspect-[2/3]"}`}
+                                            className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                           >
                                             {media.posterPath ? (
                                               <img
@@ -1120,10 +1108,10 @@ const MyList = () => {
                                           </div>
 
                                           <div
-                                            className={`p-4 flex flex-col flex-grow ${currentEffectiveViewMode === "list" ? "text-right justify-between py-3" : ""}`}
+                                            className={`p-2.5 md:p-4 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5" : ""}`}
                                           >
                                             <h3
-                                              className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base mr-6" : "text-sm text-center"}`}
+                                              className={`font-bold text-slate-700 truncate group-hover/card:text-indigo-600 transition-colors ${currentEffectiveViewMode === "list" ? "text-base" : "text-sm text-center"}`}
                                               title={media.title}
                                             >
                                               {media.title}
@@ -1132,11 +1120,11 @@ const MyList = () => {
                                             <div
                                               className={`flex items-center text-xs mt-auto gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-between"}`}
                                             >
-                                              <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md uppercase font-bold tracking-wider">
+                                              <span className={`${currentEffectiveViewMode === "list" ? "inline-block" : "hidden sm:inline-block"} bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md uppercase font-bold tracking-wider text-[10px]`}>
                                                 {media.type}
                                               </span>
                                               <span
-                                                className={`px-2.5 py-1 border rounded-md font-bold ${getStatusColor(item.status)}`}
+                                                className={`px-2.5 py-1 border rounded-md font-bold ${currentEffectiveViewMode === "list" ? "" : "w-full text-center"} ${getStatusColor(item.status)}`}
                                               >
                                                 {getStatusHebrew(item.status)}
                                               </span>
