@@ -230,7 +230,7 @@ const ItemDetails = () => {
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 md:px-12 relative -mt-24 md:-mt-32 pb-12">
+      <div className="max-w-6xl mx-auto px-4 md:px-12 relative -mt-24 md:-mt-32 pb-12">
         <div className="flex flex-col md:flex-row gap-8">
           <div className="flex-shrink-0 mx-auto md:mx-0 w-48 md:w-64 z-10 bg-slate-100 rounded-xl shadow-xl border-4 border-white/10 flex items-center justify-center overflow-hidden h-[280px] md:h-[380px]">
             {item?.posterPath ? (
@@ -252,11 +252,11 @@ const ItemDetails = () => {
               </div>
             )}
 
-            <h1 className="text-3xl md:text-5xl font-bold text-slate-800 md:text-white mb-2 drop-shadow-md md:drop-shadow-none">
+            <h1 className="text-3xl md:text-5xl font-extrabold text-slate-800 md:text-slate-900 mb-2 drop-shadow-xs md:drop-shadow-none">
               {item?.title || item?.name}
             </h1>
 
-            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-sm font-medium text-slate-600 md:text-slate-300 mb-6">
+            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-sm font-medium text-slate-500 md:text-slate-600 mb-6">
               {item?.releaseDate && (
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -264,7 +264,7 @@ const ItemDetails = () => {
                 </span>
               )}
               {item?.voteAverage > 0 && (
-                <span className="flex items-center gap-1 text-amber-400 md:text-amber-500">
+                <span className="flex items-center gap-1 text-amber-500">
                   <Star className="w-4 h-4 fill-current" />
                   {item.voteAverage.toFixed(1)}
                 </span>
@@ -331,7 +331,7 @@ const ItemDetails = () => {
                 </a>
               )}
 
-              <span className="bg-indigo-50 md:bg-indigo-500/20 text-indigo-700 md:text-indigo-100 px-2 py-0.5 rounded uppercase tracking-wider">
+              <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider border border-indigo-100/50">
                 {type}
               </span>
             </div>
