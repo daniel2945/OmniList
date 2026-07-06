@@ -1,5 +1,16 @@
+// קביעת ה-BASE_URL לפי סביבת הריצה ומשתני הסביבה של Vite
+const getBaseUrl = () => {
+  if (import.meta.env.DEV) {
+    // סביבת פיתוח מקומית
+    return "http://localhost:5000/api";
+  }
+  // סביבת פרודקשן (Vercel) - שימוש במשתנה סביבה עם Fallback לשרת רנדר
+  return import.meta.env.VITE_API_URL || "https://omnilist-api-2zzc.onrender.com/api";
+};
+
+const BASE_URL = getBaseUrl();
+
 const API_CALL = async (endpoint, method = "GET", body = null) => {
-  const BASE_URL = "http://localhost:5000/api"; 
   const token = localStorage.getItem("token");
 
   const options = {
