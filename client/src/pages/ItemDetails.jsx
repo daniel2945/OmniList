@@ -349,7 +349,7 @@ const ItemDetails = () => {
                     loading="lazy"
                     allowFullScreen
                     referrerPolicy="no-referrer-when-downgrade"
-                    src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=place_id:${id}`}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(item.address || item.title || item.name)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                   ></iframe>
                 </div>
                 {item.address && (
