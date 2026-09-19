@@ -34,6 +34,7 @@ import { getCountry } from "../utils/addressHelper";
 import useAuthStore from "../store/useAuthStore";
 import DomainAIChat from "../components/DomainAIChat";
 import QuickStatusSelector from "../components/QuickStatusSelector";
+import LibraryCard from "../components/LibraryCard";
 
 
 const MyList = () => {
@@ -636,7 +637,6 @@ const MyList = () => {
                                           : "flex flex-col gap-3 max-w-2xl mx-auto w-full"
                                       }>
                                         {groupItems.map(({ item, index }) => {
-                                          const ItemWrapper = Link;
                                           const itemType = item.type || col.type || "destination";
                                           const defaultStatus = "plan_to_visit";
                                           const itemStatus =
@@ -651,92 +651,28 @@ const MyList = () => {
                                               isDragDisabled={!isManualSort}
                                             >
                                               {(provided, snapshot) => (
-                                                <div
-                                                  ref={provided.innerRef}
-                                                  {...provided.draggableProps}
-                                                  className={`group/card relative bg-white rounded-2xl overflow-hidden border transition-all ${
-                                                    snapshot.isDragging
-                                                      ? "shadow-xl ring-2 ring-indigo-500 border-transparent z-50 scale-105 bg-white"
-                                                      : "border-slate-200/80 hover:border-indigo-300"
-                                                  } ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
-                                                >
-                                                  {isManualSort && (
-                                                    <div
-                                                      {...provided.dragHandleProps}
-                                                      className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-md z-20 cursor-grab active:cursor-grabbing"
-                                                    >
-                                                      <GripVertical className="w-4 h-4" />
-                                                    </div>
-                                                  )}
-
-                                                  <button
-                                                    onClick={(e) =>
-                                                      handleRemoveFromCollection(
-                                                        e,
-                                                        col._id,
-                                                        item._id,
-                                                      )
-                                                    }
-                                                    className="absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-colors opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-sm border border-slate-200"
-                                                  >
-                                                    <X className="w-4 h-4" />
-                                                  </button>
-
-                                                  <ItemWrapper
-                                                    to={`/item/${item.type}/${item.externalId}`}
-                                                    className={`flex flex-grow min-w-0 ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
-                                                  >
-                                                    <div
-                                                      className={`bg-slate-100 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
-                                                    >
-                                                      {getItemImageSrc(item) ? (
-                                                        <img
-                                                          src={getItemImageSrc(item)}
-                                                          draggable="false"
-                                                          alt={item.title}
-                                                          referrerPolicy="no-referrer"
-                                                          onError={(e) => {
-                                                            e.currentTarget.style.display = "none";
-                                                            if (e.currentTarget.nextElementSibling) {
-                                                              e.currentTarget.nextElementSibling.classList.remove("hidden");
-                                                            }
-                                                          }}
-                                                          className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
-                                                        />
-                                                      ) : null}
-                                                      <div className={`w-full h-full flex items-center justify-center text-xs text-slate-400 ${getItemImageSrc(item) ? "hidden" : ""}`}>
-                                                        {item.type === "destination" ? <MapPin className="w-6 h-6 text-amber-500/80" /> : "אין"}
-                                                      </div>
-                                                    </div>
-                                                    <div
-                                                      className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
-                                                    >
-                                                      <h3
-                                                        className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
-                                                        title={item.title}
-                                                      >
-                                                        {item.title}
-                                                      </h3>
-                                                    </div>
-                                                  </ItemWrapper>
-
-                                                  <div
-                                                    className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
-                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                                    onMouseDown={(e) => { e.stopPropagation(); }}
-                                                    onPointerDown={(e) => { e.stopPropagation(); }}
-                                                  >
-                                                    <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
-                                                      {itemType}
-                                                    </span>
-                                                    <QuickStatusSelector
-                                                      mediaItem={item}
-                                                      currentStatus={itemStatus}
-                                                      domain={itemType}
-                                                      onListUpdate={handleOptimisticStatusUpdate}
-                                                    />
-                                                  </div>
-                                                </div>
+                                                <LibraryCard
+                                                  item={item}
+                                                  media={item}
+                                                  viewMode={currentEffectiveViewMode}
+                                                  itemType={itemType}
+                                                  itemStatus={itemStatus}
+                                                  isManualSort={isManualSort}
+                                                  isDragging={snapshot.isDragging}
+                                                  dragHandleProps={provided.dragHandleProps}
+                                                  innerRef={provided.innerRef}
+                                                  draggableProps={provided.draggableProps}
+                                                  onDelete={(e) =>
+                                                    handleRemoveFromCollection(
+                                                      e,
+                                                      col._id,
+                                                      item._id,
+                                                    )
+                                                  }
+                                                  DeleteIcon={X}
+                                                  onListUpdate={handleOptimisticStatusUpdate}
+                                                  getImageSrc={getItemImageSrc}
+                                                />
                                               )}
                                             </Draggable>
                                           );
@@ -762,7 +698,6 @@ const MyList = () => {
                             >
                               {col.items.map((item, index) => {
                                 if (!item) return null;
-                                const ItemWrapper = Link;
                                 const itemType = item.type || col.type || "movie";
                                 const defaultStatus =
                                   itemType === "game"
@@ -782,89 +717,24 @@ const MyList = () => {
                                     isDragDisabled={!isManualSort}
                                   >
                                     {(provided, snapshot) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        className={`group/card relative bg-white rounded-2xl overflow-hidden border transition-all ${
-                                          snapshot.isDragging
-                                            ? "shadow-xl ring-2 ring-indigo-500 border-transparent z-50 scale-105 bg-white"
-                                            : "border-slate-200/80 hover:border-indigo-300"
-                                        } ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
-                                      >
-                                        {isManualSort && (
-                                          <div
-                                            {...provided.dragHandleProps}
-                                            className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-md z-20 cursor-grab active:cursor-grabbing"
-                                          >
-                                            <GripVertical className="w-4 h-4" />
-                                          </div>
-                                        )}
-
-                                        <button
-                                          onClick={(e) =>
-                                            handleRemoveFromCollection(e, col._id, item._id)
-                                          }
-                                          className="absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-colors opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-sm border border-slate-200"
-                                        >
-                                          <X className="w-4 h-4" />
-                                        </button>
-
-                                        <ItemWrapper
-                                          to={`/item/${item.type}/${item.externalId}`}
-                                          className={`flex flex-grow min-w-0 ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
-                                        >
-                                          <div
-                                            className={`bg-slate-100 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
-                                          >
-                                            {getItemImageSrc(item) ? (
-                                              <img
-                                                src={getItemImageSrc(item)}
-                                                draggable="false"
-                                                alt={item.title}
-                                                referrerPolicy="no-referrer"
-                                                onError={(e) => {
-                                                  e.currentTarget.style.display = "none";
-                                                  if (e.currentTarget.nextElementSibling) {
-                                                    e.currentTarget.nextElementSibling.classList.remove("hidden");
-                                                  }
-                                                }}
-                                                className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
-                                              />
-                                            ) : (
-                                              <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                                                {item.type === "destination" ? <MapPin className="w-6 h-6 text-slate-300" /> : "אין"}
-                                              </div>
-                                            )}
-                                          </div>
-                                          <div
-                                            className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
-                                          >
-                                            <h3
-                                              className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
-                                              title={item.title}
-                                            >
-                                              {item.title}
-                                            </h3>
-                                          </div>
-                                        </ItemWrapper>
-
-                                        <div
-                                          className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
-                                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                          onMouseDown={(e) => { e.stopPropagation(); }}
-                                          onPointerDown={(e) => { e.stopPropagation(); }}
-                                        >
-                                          <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
-                                            {itemType}
-                                          </span>
-                                          <QuickStatusSelector
-                                            mediaItem={item}
-                                            currentStatus={itemStatus}
-                                            domain={itemType}
-                                            onListUpdate={handleOptimisticStatusUpdate}
-                                          />
-                                        </div>
-                                      </div>
+                                      <LibraryCard
+                                        item={item}
+                                        media={item}
+                                        viewMode={currentEffectiveViewMode}
+                                        itemType={itemType}
+                                        itemStatus={itemStatus}
+                                        isManualSort={isManualSort}
+                                        isDragging={snapshot.isDragging}
+                                        dragHandleProps={provided.dragHandleProps}
+                                        innerRef={provided.innerRef}
+                                        draggableProps={provided.draggableProps}
+                                        onDelete={(e) =>
+                                          handleRemoveFromCollection(e, col._id, item._id)
+                                        }
+                                        DeleteIcon={X}
+                                        onListUpdate={handleOptimisticStatusUpdate}
+                                        getImageSrc={getItemImageSrc}
+                                      />
                                     )}
                                   </Draggable>
                                 );
@@ -924,72 +794,20 @@ const MyList = () => {
                         {countryItems.map((item) => {
                           const media = item.mediaItem;
                           if (!media) return null;
-                          const MainItemWrapper = Link;
                           return (
-                            <div
+                            <LibraryCard
                               key={String(item._id)}
-                              className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5 transition-all duration-300 relative ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
-                            >
-                              <button
-                                onClick={(e) =>
-                                  handleDeleteFromLibrary(e, item._id)
-                                }
-                                className="absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-
-                              <MainItemWrapper
-                                to={`/item/${media.type}/${media.externalId}`}
-                                className={`flex flex-grow min-w-0 cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
-                              >
-                                <div
-                                  className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
-                                >
-                                  {getItemImageSrc(media) ? (
-                                    <img
-                                      src={getItemImageSrc(media)}
-                                      draggable="false"
-                                      alt={media.title}
-                                      referrerPolicy="no-referrer"
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = "none";
-                                        if (e.currentTarget.nextElementSibling) {
-                                          e.currentTarget.nextElementSibling.classList.remove("hidden");
-                                        }
-                                      }}
-                                      className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
-                                    />
-                                  ) : null}
-                                  <div className={`w-full h-full flex items-center justify-center text-slate-400 text-sm ${getItemImageSrc(media) ? "hidden" : ""}`}>
-                                    {media.type === "destination" ? <MapPin className="w-8 h-8 text-amber-500/80" /> : "אין תמונה"}
-                                  </div>
-                                </div>
-
-                                <div
-                                  className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
-                                >
-                                  <h3
-                                    className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
-                                    title={media.title}
-                                  >
-                                    {media.title}
-                                  </h3>
-                                </div>
-                              </MainItemWrapper>
-
-                              <div
-                                className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                onMouseDown={(e) => { e.stopPropagation(); }}
-                                onPointerDown={(e) => { e.stopPropagation(); }}
-                              >
-                                <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
-                                  {media.type}
-                                </span>
-                                <QuickStatusSelector item={item} onListUpdate={handleOptimisticStatusUpdate} />
-                              </div>
-                            </div>
+                              item={item}
+                              media={media}
+                              viewMode={currentEffectiveViewMode}
+                              itemType={media.type}
+                              onDelete={(e) =>
+                                handleDeleteFromLibrary(e, item._id)
+                              }
+                              DeleteIcon={Trash2}
+                              onListUpdate={handleOptimisticStatusUpdate}
+                              getImageSrc={getItemImageSrc}
+                            />
                           );
                         })}
                       </div>
@@ -1064,7 +882,6 @@ const MyList = () => {
                                       {cat.items.map((item, index) => {
                                         const media = item.mediaItem;
                                         if (!media) return null;
-                                        const MainItemWrapper = Link;
                                         return (
                                           <Draggable
                                             key={String(item._id)}
@@ -1073,84 +890,23 @@ const MyList = () => {
                                             isDragDisabled={!isManualSort}
                                           >
                                             {(provided, snapshot) => (
-                                              <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 relative ${
-                                                  snapshot.isDragging
-                                                    ? "shadow-2xl ring-2 ring-indigo-500 border-transparent z-50 scale-102 bg-white"
-                                                    : ""
-                                                } ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
-                                              >
-                                                {isManualSort && (
-                                                  <div
-                                                    {...provided.dragHandleProps}
-                                                    className="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black/80 text-white p-1.5 rounded-lg z-20 cursor-grab active:cursor-grabbing transition-colors"
-                                                  >
-                                                    <GripVertical className="w-5 h-5" />
-                                                  </div>
-                                                )}
-
-                                                <button
-                                                  onClick={(e) =>
-                                                    handleDeleteFromLibrary(e, item._id)
-                                                  }
-                                                  className={`absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200 ${isManualSort ? "hidden" : ""}`}
-                                                >
-                                                  <Trash2 className="w-4 h-4" />
-                                                </button>
-
-                                                <MainItemWrapper
-                                                  to={`/item/${media.type}/${media.externalId}`}
-                                                  className={`flex flex-grow min-w-0 ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
-                                                >
-                                                  <div
-                                                    className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
-                                                  >
-                                                    {getItemImageSrc(media) ? (
-                                                      <img
-                                                        src={getItemImageSrc(media)}
-                                                        draggable="false"
-                                                        alt={media.title}
-                                                        referrerPolicy="no-referrer"
-                                                        onError={(e) => {
-                                                          e.currentTarget.style.display = "none";
-                                                          if (e.currentTarget.nextElementSibling) {
-                                                            e.currentTarget.nextElementSibling.classList.remove("hidden");
-                                                          }
-                                                        }}
-                                                        className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
-                                                      />
-                                                    ) : null}
-                                                    <div className={`w-full h-full flex items-center justify-center text-slate-400 text-sm ${getItemImageSrc(media) ? "hidden" : ""}`}>
-                                                      {media.type === "destination" ? <MapPin className="w-8 h-8 text-amber-500/80" /> : "אין תמונה"}
-                                                    </div>
-                                                  </div>
-
-                                                  <div
-                                                    className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
-                                                  >
-                                                    <h3
-                                                      className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
-                                                      title={media.title}
-                                                    >
-                                                      {media.title}
-                                                    </h3>
-                                                  </div>
-                                                </MainItemWrapper>
-
-                                                <div
-                                                  className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
-                                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                                  onMouseDown={(e) => { e.stopPropagation(); }}
-                                                  onPointerDown={(e) => { e.stopPropagation(); }}
-                                                >
-                                                  <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
-                                                    {media.type}
-                                                  </span>
-                                                  <QuickStatusSelector item={item} onListUpdate={handleOptimisticStatusUpdate} />
-                                                </div>
-                                              </div>
+                                              <LibraryCard
+                                                item={item}
+                                                media={media}
+                                                viewMode={currentEffectiveViewMode}
+                                                itemType={media.type}
+                                                isManualSort={isManualSort}
+                                                isDragging={snapshot.isDragging}
+                                                dragHandleProps={provided.dragHandleProps}
+                                                innerRef={provided.innerRef}
+                                                draggableProps={provided.draggableProps}
+                                                onDelete={(e) =>
+                                                  handleDeleteFromLibrary(e, item._id)
+                                                }
+                                                DeleteIcon={Trash2}
+                                                onListUpdate={handleOptimisticStatusUpdate}
+                                                getImageSrc={getItemImageSrc}
+                                              />
                                             )}
                                           </Draggable>
                                         );
@@ -1170,72 +926,20 @@ const MyList = () => {
                                   {cat.items.map((item) => {
                                     const media = item.mediaItem;
                                     if (!media) return null;
-                                    const MainItemWrapper = Link;
                                     return (
-                                      <div
+                                      <LibraryCard
                                         key={String(item._id)}
-                                        className={`group/card bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 relative ${currentEffectiveViewMode === "list" ? "flex h-24 sm:h-28 flex-row items-center" : "flex flex-col h-full"}`}
-                                      >
-                                        <button
-                                          onClick={(e) =>
-                                            handleDeleteFromLibrary(e, item._id)
-                                          }
-                                          className="absolute top-2 left-2 bg-white/90 hover:bg-red-50 text-slate-400 hover:text-red-500 p-1.5 rounded-lg z-20 transition-all opacity-100 lg:opacity-0 lg:group-hover/card:opacity-100 cursor-pointer shadow-xs border border-slate-200"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </button>
-
-                                        <MainItemWrapper
-                                          to={`/item/${media.type}/${media.externalId}`}
-                                          className={`flex flex-grow min-w-0 cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
-                                        >
-                                          <div
-                                            className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
-                                          >
-                                            {getItemImageSrc(media) ? (
-                                              <img
-                                                src={getItemImageSrc(media)}
-                                                draggable="false"
-                                                alt={media.title}
-                                                referrerPolicy="no-referrer"
-                                                onError={(e) => {
-                                                  e.currentTarget.style.display = "none";
-                                                  if (e.currentTarget.nextElementSibling) {
-                                                    e.currentTarget.nextElementSibling.classList.remove("hidden");
-                                                  }
-                                                }}
-                                                className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
-                                              />
-                                            ) : null}
-                                            <div className={`w-full h-full flex items-center justify-center text-slate-400 text-sm ${getItemImageSrc(media) ? "hidden" : ""}`}>
-                                              {media.type === "destination" ? <MapPin className="w-8 h-8 text-amber-500/80" /> : "אין תמונה"}
-                                            </div>
-                                          </div>
-
-                                          <div
-                                            className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
-                                          >
-                                            <h3
-                                              className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
-                                              title={media.title}
-                                            >
-                                              {media.title}
-                                            </h3>
-                                          </div>
-                                        </MainItemWrapper>
-
-                                        <div
-                                          className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
-                                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                          onMouseDown={(e) => { e.stopPropagation(); }}
-                                          onPointerDown={(e) => { e.stopPropagation(); }}
-                                        >
-                                          <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
-                                            {media.type}
-                                          </span>
-                                          <QuickStatusSelector item={item} onListUpdate={handleOptimisticStatusUpdate} />
-                                        </div>
-                                      </div>
+                                        item={item}
+                                        media={media}
+                                        viewMode={currentEffectiveViewMode}
+                                        itemType={media.type}
+                                        onDelete={(e) =>
+                                          handleDeleteFromLibrary(e, item._id)
+                                        }
+                                        DeleteIcon={Trash2}
+                                        onListUpdate={handleOptimisticStatusUpdate}
+                                        getImageSrc={getItemImageSrc}
+                                      />
                                     );
                                   })}
                                 </div>

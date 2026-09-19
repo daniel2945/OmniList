@@ -122,7 +122,7 @@ const QuickStatusSelector = ({
 
   return (
     <div
-      className="relative inline-flex items-center text-right z-30"
+      className="relative inline-flex items-center text-right z-30 shrink-0"
       onClick={stopEvent}
       onMouseDown={stopEvent}
       onMouseUp={stopEvent}
@@ -131,7 +131,7 @@ const QuickStatusSelector = ({
     >
       {isUpdating ? (
         <div
-          className={`px-2 py-1 border rounded-md font-bold text-[10px] sm:text-[11px] flex items-center gap-1 min-w-[65px] justify-center ${getStatusColor(
+          className={`px-1.5 sm:px-2 py-0.5 sm:py-1 border rounded-md font-bold text-[9.5px] sm:text-[11px] flex items-center gap-1 min-w-[55px] sm:min-w-[65px] justify-center ${getStatusColor(
             localStatus || status
           )}`}
         >
@@ -148,7 +148,7 @@ const QuickStatusSelector = ({
             onTouchStart={stopEvent}
             onPointerDown={stopEvent}
             onKeyDown={(e) => e.stopPropagation()}
-            className={`appearance-none cursor-pointer pl-6 pr-2 py-1 border rounded-md font-bold text-[10px] sm:text-[11px] outline-none transition-all shadow-2xs ${getStatusColor(
+            className={`appearance-none cursor-pointer pl-5 sm:pl-6 pr-1.5 sm:pr-2 py-0.5 sm:py-1 border rounded-md font-bold text-[9.5px] sm:text-[11px] outline-none transition-all shadow-2xs ${getStatusColor(
               localStatus || status
             )}`}
             title="לחץ לשינוי סטטוס מהיר"
@@ -163,7 +163,7 @@ const QuickStatusSelector = ({
               </option>
             ))}
           </select>
-          <ChevronDown className="w-3 h-3 pointer-events-none absolute left-1.5 text-current opacity-70" />
+          <ChevronDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 pointer-events-none absolute left-1 sm:left-1.5 text-current opacity-70" />
         </div>
       )}
     </div>
