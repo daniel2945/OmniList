@@ -32,6 +32,9 @@ import {
 } from "../api/collectionService";
 import { getCountry } from "../utils/addressHelper";
 import useAuthStore from "../store/useAuthStore";
+import DomainAIChat from "../components/DomainAIChat";
+import QuickStatusSelector from "../components/QuickStatusSelector";
+
 
 const MyList = () => {
   const { user } = useAuthStore();
@@ -85,6 +88,40 @@ const MyList = () => {
   useEffect(() => {
     fetchData();
   }, [user]);
+
+  const handleOptimisticStatusUpdate = (targetId, newStatus, fullMediaItem) => {
+    setList((prev) => {
+      const idStr = String(targetId);
+      const foundIndex = prev.findIndex(
+        (listItem) =>
+          String(listItem._id) === idStr ||
+          (listItem.mediaItem &&
+            (String(listItem.mediaItem._id) === idStr ||
+             String(listItem.mediaItem.externalId) === idStr))
+      );
+
+      if (foundIndex !== -1) {
+        const next = [...prev];
+        next[foundIndex] = { ...next[foundIndex], status: newStatus };
+        return next;
+      }
+
+      if (fullMediaItem) {
+        return [
+          ...prev,
+          {
+            _id: `temp-${Date.now()}`,
+            mediaItem: fullMediaItem,
+            status: newStatus,
+            createdAt: new Date().toISOString(),
+          },
+        ];
+      }
+
+      return prev;
+    });
+  };
+
 
   const handleToggleViewMode = (mode) => {
     setViewMode(mode);
@@ -161,14 +198,14 @@ const MyList = () => {
     }
   };
 
-  const statusMap = new Map(
-    list
-      .filter((item) => item.mediaItem)
-      .map((item) => {
-        const itemId = item.mediaItem._id ? item.mediaItem._id.toString() : item.mediaItem.toString();
-        return [itemId, item.status];
-      })
-  );
+  const statusMap = new Map();
+  list.forEach((item) => {
+    if (!item.mediaItem) return;
+    const mId = item.mediaItem._id ? item.mediaItem._id.toString() : item.mediaItem.toString();
+    if (mId) statusMap.set(mId, item.status);
+    if (item.mediaItem.externalId) statusMap.set(String(item.mediaItem.externalId), item.status);
+    if (item._id) statusMap.set(String(item._id), item.status);
+  });
 
   const handleDragEnd = async (result) => {
     const { source, destination, type } = result;
@@ -322,6 +359,14 @@ const MyList = () => {
       toast.error("שגיאה ביצירת האוסף");
     }
   };
+
+  const getItemImageSrc = (target) =>
+    target?.posterPath ||
+    target?.backdropPath ||
+    target?.mediaItem?.posterPath ||
+    target?.mediaItem?.backdropPath ||
+    target?.metadata?.posterPath ||
+    target?.metadata?.imageUrl;
 
   const getStatusHebrew = (status) => {
     const mapping = {
@@ -592,7 +637,12 @@ const MyList = () => {
                                       }>
                                         {groupItems.map(({ item, index }) => {
                                           const ItemWrapper = Link;
-                                          const itemStatus = statusMap.get(item._id.toString());
+                                          const itemType = item.type || col.type || "destination";
+                                          const defaultStatus = "plan_to_visit";
+                                          const itemStatus =
+                                            statusMap.get(item._id?.toString()) ||
+                                            statusMap.get(String(item.externalId)) ||
+                                            defaultStatus;
                                           return (
                                             <Draggable
                                               key={String(item._id)}
@@ -634,46 +684,58 @@ const MyList = () => {
 
                                                   <ItemWrapper
                                                     to={`/item/${item.type}/${item.externalId}`}
-                                                    className={`flex w-full h-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
+                                                    className={`flex flex-grow min-w-0 ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
                                                   >
                                                     <div
                                                       className={`bg-slate-100 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                                     >
-                                                      {item.posterPath ? (
+                                                      {getItemImageSrc(item) ? (
                                                         <img
-                                                          src={item.posterPath}
+                                                          src={getItemImageSrc(item)}
                                                           draggable="false"
                                                           alt={item.title}
+                                                          referrerPolicy="no-referrer"
+                                                          onError={(e) => {
+                                                            e.currentTarget.style.display = "none";
+                                                            if (e.currentTarget.nextElementSibling) {
+                                                              e.currentTarget.nextElementSibling.classList.remove("hidden");
+                                                            }
+                                                          }}
                                                           className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
                                                         />
-                                                      ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                                                          אין
-                                                        </div>
-                                                      )}
+                                                      ) : null}
+                                                      <div className={`w-full h-full flex items-center justify-center text-xs text-slate-400 ${getItemImageSrc(item) ? "hidden" : ""}`}>
+                                                        {item.type === "destination" ? <MapPin className="w-6 h-6 text-amber-500/80" /> : "אין"}
+                                                      </div>
                                                     </div>
                                                     <div
                                                       className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                                     >
                                                       <h3
-                                                        className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
+                                                        className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
                                                         title={item.title}
                                                       >
                                                         {item.title}
                                                       </h3>
-                                                      {itemStatus && (
-                                                        <div
-                                                          className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
-                                                        >
-                                                          <span
-                                                            className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(itemStatus)}`}
-                                                          >
-                                                            {getStatusHebrew(itemStatus)}
-                                                          </span>
-                                                        </div>
-                                                      )}
                                                     </div>
                                                   </ItemWrapper>
+
+                                                  <div
+                                                    className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                                    onMouseDown={(e) => { e.stopPropagation(); }}
+                                                    onPointerDown={(e) => { e.stopPropagation(); }}
+                                                  >
+                                                    <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
+                                                      {itemType}
+                                                    </span>
+                                                    <QuickStatusSelector
+                                                      mediaItem={item}
+                                                      currentStatus={itemStatus}
+                                                      domain={itemType}
+                                                      onListUpdate={handleOptimisticStatusUpdate}
+                                                    />
+                                                  </div>
                                                 </div>
                                               )}
                                             </Draggable>
@@ -701,7 +763,17 @@ const MyList = () => {
                               {col.items.map((item, index) => {
                                 if (!item) return null;
                                 const ItemWrapper = Link;
-                                const itemStatus = statusMap.get(item._id.toString());
+                                const itemType = item.type || col.type || "movie";
+                                const defaultStatus =
+                                  itemType === "game"
+                                    ? "plan_to_play"
+                                    : itemType === "destination"
+                                    ? "plan_to_visit"
+                                    : "plan_to_watch";
+                                const itemStatus =
+                                  statusMap.get(item._id?.toString()) ||
+                                  statusMap.get(String(item.externalId)) ||
+                                  defaultStatus;
                                 return (
                                   <Draggable
                                     key={String(item._id)}
@@ -739,21 +811,28 @@ const MyList = () => {
 
                                         <ItemWrapper
                                           to={`/item/${item.type}/${item.externalId}`}
-                                          className={`flex w-full h-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
+                                          className={`flex flex-grow min-w-0 ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
                                         >
                                           <div
                                             className={`bg-slate-100 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                           >
-                                            {item.posterPath ? (
+                                            {getItemImageSrc(item) ? (
                                               <img
-                                                src={item.posterPath}
+                                                src={getItemImageSrc(item)}
                                                 draggable="false"
                                                 alt={item.title}
+                                                referrerPolicy="no-referrer"
+                                                onError={(e) => {
+                                                  e.currentTarget.style.display = "none";
+                                                  if (e.currentTarget.nextElementSibling) {
+                                                    e.currentTarget.nextElementSibling.classList.remove("hidden");
+                                                  }
+                                                }}
                                                 className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
                                               />
                                             ) : (
                                               <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                                                אין
+                                                {item.type === "destination" ? <MapPin className="w-6 h-6 text-slate-300" /> : "אין"}
                                               </div>
                                             )}
                                           </div>
@@ -761,24 +840,30 @@ const MyList = () => {
                                             className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                           >
                                             <h3
-                                              className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
+                                              className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
                                               title={item.title}
                                             >
                                               {item.title}
                                             </h3>
-                                            {itemStatus && (
-                                              <div
-                                                className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
-                                              >
-                                                <span
-                                                  className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(itemStatus)}`}
-                                                >
-                                                  {getStatusHebrew(itemStatus)}
-                                                </span>
-                                              </div>
-                                            )}
                                           </div>
                                         </ItemWrapper>
+
+                                        <div
+                                          className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
+                                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                          onMouseDown={(e) => { e.stopPropagation(); }}
+                                          onPointerDown={(e) => { e.stopPropagation(); }}
+                                        >
+                                          <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
+                                            {itemType}
+                                          </span>
+                                          <QuickStatusSelector
+                                            mediaItem={item}
+                                            currentStatus={itemStatus}
+                                            domain={itemType}
+                                            onListUpdate={handleOptimisticStatusUpdate}
+                                          />
+                                        </div>
                                       </div>
                                     )}
                                   </Draggable>
@@ -856,49 +941,54 @@ const MyList = () => {
 
                               <MainItemWrapper
                                 to={`/item/${media.type}/${media.externalId}`}
-                                className={`flex h-full w-full cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
+                                className={`flex flex-grow min-w-0 cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
                               >
                                 <div
                                   className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                 >
-                                  {media.posterPath ? (
+                                  {getItemImageSrc(media) ? (
                                     <img
-                                      src={media.posterPath}
+                                      src={getItemImageSrc(media)}
                                       draggable="false"
                                       alt={media.title}
+                                      referrerPolicy="no-referrer"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = "none";
+                                        if (e.currentTarget.nextElementSibling) {
+                                          e.currentTarget.nextElementSibling.classList.remove("hidden");
+                                        }
+                                      }}
                                       className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
                                     />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
-                                      אין תמונה
-                                    </div>
-                                  )}
+                                  ) : null}
+                                  <div className={`w-full h-full flex items-center justify-center text-slate-400 text-sm ${getItemImageSrc(media) ? "hidden" : ""}`}>
+                                    {media.type === "destination" ? <MapPin className="w-8 h-8 text-amber-500/80" /> : "אין תמונה"}
+                                  </div>
                                 </div>
 
                                 <div
                                   className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                 >
                                   <h3
-                                    className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
+                                    className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
                                     title={media.title}
                                   >
                                     {media.title}
                                   </h3>
-
-                                  <div
-                                    className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
-                                  >
-                                    <span className={`bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]`}>
-                                      {media.type}
-                                    </span>
-                                    <span
-                                      className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(item.status)}`}
-                                    >
-                                      {getStatusHebrew(item.status)}
-                                    </span>
-                                  </div>
                                 </div>
                               </MainItemWrapper>
+
+                              <div
+                                className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                onMouseDown={(e) => { e.stopPropagation(); }}
+                                onPointerDown={(e) => { e.stopPropagation(); }}
+                              >
+                                <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
+                                  {media.type}
+                                </span>
+                                <QuickStatusSelector item={item} onListUpdate={handleOptimisticStatusUpdate} />
+                              </div>
                             </div>
                           );
                         })}
@@ -1012,49 +1102,54 @@ const MyList = () => {
 
                                                 <MainItemWrapper
                                                   to={`/item/${media.type}/${media.externalId}`}
-                                                  className={`flex h-full w-full ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
+                                                  className={`flex flex-grow min-w-0 ${isManualSort ? "cursor-default" : "cursor-pointer"} ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
                                                 >
                                                   <div
                                                     className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                                   >
-                                                    {media.posterPath ? (
+                                                    {getItemImageSrc(media) ? (
                                                       <img
-                                                        src={media.posterPath}
+                                                        src={getItemImageSrc(media)}
                                                         draggable="false"
                                                         alt={media.title}
+                                                        referrerPolicy="no-referrer"
+                                                        onError={(e) => {
+                                                          e.currentTarget.style.display = "none";
+                                                          if (e.currentTarget.nextElementSibling) {
+                                                            e.currentTarget.nextElementSibling.classList.remove("hidden");
+                                                          }
+                                                        }}
                                                         className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
                                                       />
-                                                    ) : (
-                                                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
-                                                        אין תמונה
-                                                      </div>
-                                                    )}
+                                                    ) : null}
+                                                    <div className={`w-full h-full flex items-center justify-center text-slate-400 text-sm ${getItemImageSrc(media) ? "hidden" : ""}`}>
+                                                      {media.type === "destination" ? <MapPin className="w-8 h-8 text-amber-500/80" /> : "אין תמונה"}
+                                                    </div>
                                                   </div>
 
                                                   <div
                                                     className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                                   >
                                                     <h3
-                                                      className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
+                                                      className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
                                                       title={media.title}
                                                     >
                                                       {media.title}
                                                     </h3>
-
-                                                    <div
-                                                      className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
-                                                    >
-                                                      <span className={`bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]`}>
-                                                        {media.type}
-                                                      </span>
-                                                      <span
-                                                        className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(item.status)}`}
-                                                      >
-                                                        {getStatusHebrew(item.status)}
-                                                      </span>
-                                                    </div>
                                                   </div>
                                                 </MainItemWrapper>
+
+                                                <div
+                                                  className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
+                                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                                  onMouseDown={(e) => { e.stopPropagation(); }}
+                                                  onPointerDown={(e) => { e.stopPropagation(); }}
+                                                >
+                                                  <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
+                                                    {media.type}
+                                                  </span>
+                                                  <QuickStatusSelector item={item} onListUpdate={handleOptimisticStatusUpdate} />
+                                                </div>
                                               </div>
                                             )}
                                           </Draggable>
@@ -1092,49 +1187,54 @@ const MyList = () => {
 
                                         <MainItemWrapper
                                           to={`/item/${media.type}/${media.externalId}`}
-                                          className={`flex h-full w-full cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row" : "flex-col"}`}
+                                          className={`flex flex-grow min-w-0 cursor-pointer ${currentEffectiveViewMode === "list" ? "flex-row items-center h-full" : "flex-col"}`}
                                         >
                                           <div
                                             className={`relative bg-slate-50 flex-shrink-0 overflow-hidden ${currentEffectiveViewMode === "list" ? "w-20 sm:w-24 h-full" : "w-full aspect-[2/3]"}`}
                                           >
-                                            {media.posterPath ? (
+                                            {getItemImageSrc(media) ? (
                                               <img
-                                                src={media.posterPath}
+                                                src={getItemImageSrc(media)}
                                                 draggable="false"
                                                 alt={media.title}
+                                                referrerPolicy="no-referrer"
+                                                onError={(e) => {
+                                                  e.currentTarget.style.display = "none";
+                                                  if (e.currentTarget.nextElementSibling) {
+                                                    e.currentTarget.nextElementSibling.classList.remove("hidden");
+                                                  }
+                                                }}
                                                 className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
                                               />
-                                            ) : (
-                                              <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
-                                                אין תמונה
-                                              </div>
-                                            )}
+                                            ) : null}
+                                            <div className={`w-full h-full flex items-center justify-center text-slate-400 text-sm ${getItemImageSrc(media) ? "hidden" : ""}`}>
+                                              {media.type === "destination" ? <MapPin className="w-8 h-8 text-amber-500/80" /> : "אין תמונה"}
+                                            </div>
                                           </div>
 
                                           <div
                                             className={`p-2 flex flex-col flex-grow min-w-0 ${currentEffectiveViewMode === "list" ? "text-right justify-center gap-1.5 md:p-3" : ""}`}
                                           >
                                             <h3
-                                              className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1.5 text-center line-clamp-2"}`}
+                                              className={`font-bold text-slate-700 transition-colors ${currentEffectiveViewMode === "list" ? "text-sm md:text-base line-clamp-2 mr-6" : "text-xs sm:text-sm mb-1 text-center line-clamp-2"}`}
                                               title={media.title}
                                             >
                                               {media.title}
                                             </h3>
-
-                                            <div
-                                              className={`flex flex-wrap items-center mt-auto gap-1 sm:gap-2 ${currentEffectiveViewMode === "list" ? "justify-end" : "justify-center"}`}
-                                            >
-                                              <span className={`bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]`}>
-                                                {media.type}
-                                              </span>
-                                              <span
-                                                className={`px-1.5 sm:px-2 py-0.5 border rounded-md font-bold text-[9px] sm:text-[10px] text-center ${getStatusColor(item.status)}`}
-                                              >
-                                                {getStatusHebrew(item.status)}
-                                              </span>
-                                            </div>
                                           </div>
                                         </MainItemWrapper>
+
+                                        <div
+                                          className={`p-2 pt-0 z-30 flex items-center gap-1.5 shrink-0 ${currentEffectiveViewMode === "list" ? "justify-end pr-3" : "justify-center pb-2 mt-auto"}`}
+                                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                          onMouseDown={(e) => { e.stopPropagation(); }}
+                                          onPointerDown={(e) => { e.stopPropagation(); }}
+                                        >
+                                          <span className="bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md uppercase font-bold tracking-wider text-[9px] sm:text-[10px]">
+                                            {media.type}
+                                          </span>
+                                          <QuickStatusSelector item={item} onListUpdate={handleOptimisticStatusUpdate} />
+                                        </div>
                                       </div>
                                     );
                                   })}
@@ -1152,6 +1252,7 @@ const MyList = () => {
           </div>
         )}
       </div>
+      <DomainAIChat key={activeFilter} domain={activeFilter !== "collections" ? activeFilter : "movie"} />
     </DragDropContext>
   );
 };

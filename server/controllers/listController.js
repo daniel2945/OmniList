@@ -1,4 +1,5 @@
-const mongoose = require("mongoose"); // <- התיקון הקריטי: ייבוא הספרייה ששכחת!
+const mongoose = require("mongoose");
+const axios = require("axios");
 const MediaItem = require("../models/Item");
 const UserList = require("../models/UserList");
 
@@ -39,6 +40,19 @@ const addOrUpdateListItem = async (req, res) => {
         episodeRuntime,
         address,
       });
+    } else {
+      let needsSave = false;
+      if (posterPath && media.posterPath !== posterPath) {
+        media.posterPath = posterPath;
+        needsSave = true;
+      }
+      if (address && media.address !== address) {
+        media.address = address;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await media.save();
+      }
     }
 
     const userListItem = await UserList.findOneAndUpdate(
@@ -61,7 +75,45 @@ const getUserList = async (req, res) => {
 
     const list = await UserList.find({ user: userId })
       .populate("mediaItem")
-      .sort({ orderIndex: 1 }); // מיון לפי התור שנשמר
+      .sort({ orderIndex: 1 });
+
+    // תיקון ועדכון אוטומטי של תמונות יעדים בדאטה-בייס
+    for (const item of list) {
+      if (
+        item.mediaItem &&
+        item.mediaItem.type === "destination" &&
+        (!item.mediaItem.posterPath || item.mediaItem.posterPath.includes("places.googleapis.com"))
+      ) {
+        try {
+          const searchQuery = item.mediaItem.address || item.mediaItem.title;
+          if (searchQuery && process.env.GOOGLE_MAPS_API_KEY) {
+            const googleRes = await axios.post(
+              "https://places.googleapis.com/v1/places:searchText",
+              { textQuery: searchQuery, languageCode: "en", maxResultCount: 1 },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Goog-Api-Key": process.env.GOOGLE_MAPS_API_KEY,
+                  "X-Goog-FieldMask": "places.photos",
+                },
+              }
+            );
+            const places = googleRes.data.places;
+            if (places && places.length > 0 && places[0].photos && places[0].photos.length > 0) {
+              const photoName = places[0].photos[0].name;
+              const rawUrl = `https://places.googleapis.com/v1/${photoName}/media?key=${process.env.GOOGLE_MAPS_API_KEY}&maxWidthPx=800`;
+              const redirectRes = await axios.get(rawUrl, { maxRedirects: 0, validateStatus: null });
+              const photoUrl = redirectRes.headers.location || rawUrl;
+              item.mediaItem.posterPath = photoUrl;
+              item.mediaItem.backdropPath = photoUrl;
+              await MediaItem.updateOne({ _id: item.mediaItem._id }, { posterPath: photoUrl, backdropPath: photoUrl });
+            }
+          }
+        } catch (err) {
+          console.error("Failed to repair destination posterPath:", err.message);
+        }
+      }
+    }
 
     res.json(list);
   } catch (error) {

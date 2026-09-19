@@ -1,3 +1,7 @@
+import axios from "axios";
+import toast from "react-hot-toast";
+import useAuthStore from "../store/useAuthStore";
+
 // קביעת ה-BASE_URL בצורה סינכרונית מיידית
 const getBaseUrl = () => {
   const isLocalhost =
@@ -16,41 +20,79 @@ const getBaseUrl = () => {
 // הכתובת נקבעת פעם אחת בלבד בטעינת האתר
 const BASE_URL = getBaseUrl();
 
-const API_CALL = async (endpoint, method = "GET", body = null) => {
-  const token = localStorage.getItem("token");
+// יצירת מופע של Axios
+const apiClient = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-  const options = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
-  };
+// Request Interceptor להוספה דינמית של הטוקן
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  if (body && method !== "GET") {
-    options.body = JSON.stringify(body);
+// משתנה למניעת התראות כפולות במקרה שקריאות רבות נכשלות במקביל
+let isLoggingOut = false;
+
+// Response Interceptor לזיהוי שגיאות 401 / 403 (Token Expired)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const isAuthRoute =
+      error.config?.url?.includes("/auth/login") ||
+      error.config?.url?.includes("/auth/register");
+
+    if ((status === 401 || status === 403) && !isAuthRoute) {
+      if (!isLoggingOut) {
+        isLoggingOut = true;
+
+        // איפוס סטייט ההתחברות וניקוי localStorage
+        useAuthStore.getState().logout();
+
+        // הצגת הודעת Toast קצרה על פוג תוקף השיחה
+        toast.error("פג תוקף ההתחברות שלך. אנא התחבר מחדש.", {
+          id: "session-expired-toast",
+        });
+
+        // הפניה לעמוד התחברות
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+
+        setTimeout(() => {
+          isLoggingOut = false;
+        }, 3000);
+      }
+    }
+    return Promise.reject(error);
   }
+);
 
+const API_CALL = async (endpoint, method = "GET", body = null) => {
   try {
-    // שימוש ישיר ב-BASE_URL הסינכרוני והבטוח
-    const res = await fetch(`${BASE_URL}${endpoint}`, options);
+    const response = await apiClient({
+      url: endpoint,
+      method: method.toLowerCase(),
+      data: body && method.toUpperCase() !== "GET" ? body : undefined,
+    });
 
-    const contentType = res.headers.get("content-type");
-    let data = null;
-    if (contentType && contentType.includes("application/json")) {
-      data = await res.json();
-    }
-
-    if (!res.ok) {
-      const error = new Error(data?.message || data?.error || `Error: ${res.status}`);
-      error.response = { data };
-      throw error;
-    }
-
-    return data;
+    return response.data;
   } catch (err) {
-    console.error("API Error:", err.message);
-    throw err;
+    const message =
+      err.response?.data?.message || err.response?.data?.error || err.message;
+    const customError = new Error(message);
+    customError.response = err.response;
+    throw customError;
   }
 };
 
