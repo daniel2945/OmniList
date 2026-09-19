@@ -12,9 +12,10 @@ const messageSchema = new mongoose.Schema({
 
 const conversationSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  mediaItem: { type: mongoose.Schema.Types.ObjectId, ref: 'MediaItem', required: true },
-  title: { type: String, default: 'שיחה חדשה' }, // אפשר לתת שם לשיחה בעתיד
+  mediaItem: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: false },
+  domain: { type: String }, // 'movie', 'tv', 'game', 'destination', or 'general'
+  title: { type: String, default: 'שיחה חדשה' },
   messages: [messageSchema] // מערך ההודעות
 }, { timestamps: true });
 
-module.exports = mongoose.model('Conversation', conversationSchema);
+module.exports = mongoose.model('Conversation', conversationSchema);

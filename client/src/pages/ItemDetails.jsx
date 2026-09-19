@@ -22,6 +22,8 @@ import { addOrUpdateListItem, getUserList } from "../api/listService";
 import { getDestinationDetails } from "../api/destinationService";
 import { getCollections, addItemToCollection, createCollection } from "../api/collectionService";
 import useAuthStore from "../store/useAuthStore";
+import ItemAIChat from "../components/ItemAIChat";
+
 
 const fallbackDescriptions = {
   game: "No description available for this game.",
@@ -446,6 +448,13 @@ const ItemDetails = () => {
                 </div>
               )}
             </div>
+
+            {/* צ'אט AI מותאם אישית לפריט ספציפי זה */}
+            <ItemAIChat
+              itemId={mediaItemId || listItemId || item?._id}
+              itemTitle={item?.title || item?.name}
+              itemType={type}
+            />
           </div>
         </div>
       </div>
